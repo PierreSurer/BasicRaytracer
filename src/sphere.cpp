@@ -40,8 +40,8 @@ Hit Sphere::intersect(const Ray &ray)
 
     // place holder for actual intersection calculation
 
-    Vector OC = (position - ray.O).normalized();
-    if (OC.dot(ray.D) < 0.999) {
+    Vector OC = position - ray.O;
+    if (ray.D.cross(OC).length() > r) {
         return Hit::NO_HIT();
     }
     double t = 1000;
