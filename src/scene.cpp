@@ -63,17 +63,17 @@ Color Scene::trace(const Ray &ray)
 
     Color color = material->color * material->ka * totalIntensity;
     for(auto light : lights) {
-        Vector lightVector = hit - light->position;
+        Vector lightVector = light->position - hit;
 
         Color diffuseColor = material->color * material->kd;
+        diffuseColor *= std::clamp(N.dot(lightVector.normalized()), 0.0, 1.0);
         diffuseColor *= light->diffusePower/ (lightVector.length() * lightVector.length());
-        diffuseColor *= std::clamp(lightVector.normalized().dot(N), 0.0, 1.0);
         color += diffuseColor;
 
         Color specularColor = material->color * material->ks;
-        Vector H = (lightVector + V).normalized();
+        Vector H = (lightVector.normalized() + V).normalized();
         double NdotH = std::clamp(N.dot(H), 0.0, 1.0);
-        specularColor *= pow(NdotH, 2.0 * material->n);;
+        specularColor *= pow(NdotH, 2.0 * material->n);
         specularColor *= light->specularPower / (lightVector.length() * lightVector.length());
         color += specularColor;
     }
