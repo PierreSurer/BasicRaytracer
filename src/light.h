@@ -25,11 +25,14 @@
 class Light
 {
 public:
-    Light(Point pos,Color c) : position(pos), color(c)
+    Light(Point pos, Color c) : position(pos), color(c)
     { }
 
     Point position;
     Color color;
+    float specularPower = 2000000.0f;
+    float diffusePower = 2000000.0f;
+    float ambientPower = 0.5f;
 };
 
 class Ray

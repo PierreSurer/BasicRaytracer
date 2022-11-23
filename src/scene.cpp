@@ -16,6 +16,7 @@
 
 #include "scene.h"
 #include "material.h"
+#include <algorithm>
 
 Color Scene::trace(const Ray &ray)
 {
@@ -56,8 +57,26 @@ Color Scene::trace(const Ray &ray)
     *        Color*Color        dito
     *        pow(a,b)           a to the power of b
     ****************************************************/
+    float totalIntensity = 0.0f;
+    for(auto light : lights)
+        totalIntensity += light->ambientPower;
 
-    Color color = material->color;                  // place holder
+    Color color = material->color * material->ka * totalIntensity;
+    for(auto light : lights) {
+        Vector lightVector = hit - light->position;
+
+        Color diffuseColor = material->color * material->kd;
+        diffuseColor *= light->diffusePower/ (lightVector.length() * lightVector.length());
+        diffuseColor *= std::clamp(lightVector.normalized().dot(N), 0.0, 1.0);
+        color += diffuseColor;
+
+        Color specularColor = material->color * material->ks;
+        Vector H = (lightVector + V).normalized();
+        double NdotH = std::clamp(N.dot(H), 0.0, 1.0);
+        specularColor *= pow(NdotH, 2.0 * material->n);;
+        specularColor *= light->specularPower / (lightVector.length() * lightVector.length());
+        color += specularColor;
+    }
 
     return color;
 }
