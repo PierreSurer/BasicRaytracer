@@ -16,8 +16,8 @@ namespace YAML
 	Map::Map(const node_map& data)
 	{
 		for(node_map::const_iterator it=data.begin();it!=data.end();++it) {
-			std::auto_ptr<Node> pKey = it->first->Clone();
-			std::auto_ptr<Node> pValue = it->second->Clone();
+			std::unique_ptr<Node> pKey = it->first->Clone();
+			std::unique_ptr<Node> pValue = it->second->Clone();
 			m_data[pKey.release()] = pValue.release();
 		}
 	}
@@ -88,7 +88,7 @@ namespace YAML
 				break;
 			}
 
-			std::auto_ptr <Node> pKey(new Node), pValue(new Node);
+			std::unique_ptr <Node> pKey(new Node), pValue(new Node);
 			
 			// grab key (if non-null)
 			if(token.type == Token::KEY) {
@@ -123,7 +123,7 @@ namespace YAML
 				break;
 			}
 			
-			std::auto_ptr <Node> pKey(new Node), pValue(new Node);
+			std::unique_ptr <Node> pKey(new Node), pValue(new Node);
 
 			// grab key (if non-null)
 			if(token.type == Token::KEY) {
