@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (MSVC)
     add_compile_options(/W2)
 else()
-    add_compile_options(-Wall -Wextra) # -Wpedantic
+    add_compile_options(-Wall -Wextra)
 endif()
 
 file(GLOB SOURCE
