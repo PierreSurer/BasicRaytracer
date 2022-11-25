@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{3771BC1E-9E87-4A79-9642-75DB0FC77D23}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>deps</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>deps</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>deps</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>deps</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="deps\yaml\aliascontent.cpp" />
+    <ClCompile Include="deps\yaml\content.cpp" />
+    <ClCompile Include="deps\yaml\conversion.cpp" />
+    <ClCompile Include="deps\yaml\emitter.cpp" />
+    <ClCompile Include="deps\yaml\emitterstate.cpp" />
+    <ClCompile Include="deps\yaml\emitterutils.cpp" />
+    <ClCompile Include="deps\yaml\exp.cpp" />
+    <ClCompile Include="deps\yaml\iterator.cpp" />
+    <ClCompile Include="deps\yaml\map.cpp" />
+    <ClCompile Include="deps\yaml\node.cpp" />
+    <ClCompile Include="deps\yaml\null.cpp" />
+    <ClCompile Include="deps\yaml\ostream.cpp" />
+    <ClCompile Include="deps\yaml\parser.cpp" />
+    <ClCompile Include="deps\yaml\parserstate.cpp" />
+    <ClCompile Include="deps\yaml\regex.cpp" />
+    <ClCompile Include="deps\yaml\scalar.cpp" />
+    <ClCompile Include="deps\yaml\scanner.cpp" />
+    <ClCompile Include="deps\yaml\scanscalar.cpp" />
+    <ClCompile Include="deps\yaml\scantoken.cpp" />
+    <ClCompile Include="deps\yaml\sequence.cpp" />
+    <ClCompile Include="deps\yaml\simplekey.cpp" />
+    <ClCompile Include="deps\yaml\stream.cpp" />
+    <ClCompile Include="raytracer\image.cpp" />
+    <ClCompile Include="raytracer\light.cpp" />
+    <ClCompile Include="raytracer\lodepng.cpp" />
+    <ClCompile Include="raytracer\main.cpp" />
+    <ClCompile Include="raytracer\material.cpp" />
+    <ClCompile Include="raytracer\raytracer.cpp" />
+    <ClCompile Include="raytracer\scene.cpp" />
+    <ClCompile Include="raytracer\sphere.cpp" />
+    <ClCompile Include="raytracer\triple.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="deps\yaml\aliascontent.h" />
+    <ClInclude Include="deps\yaml\content.h" />
+    <ClInclude Include="deps\yaml\conversion.h" />
+    <ClInclude Include="deps\yaml\crt.h" />
+    <ClInclude Include="deps\yaml\emitter.h" />
+    <ClInclude Include="deps\yaml\emittermanip.h" />
+    <ClInclude Include="deps\yaml\emitterstate.h" />
+    <ClInclude Include="deps\yaml\emitterutils.h" />
+    <ClInclude Include="deps\yaml\exceptions.h" />
+    <ClInclude Include="deps\yaml\exp.h" />
+    <ClInclude Include="deps\yaml\indentation.h" />
+    <ClInclude Include="deps\yaml\iterator.h" />
+    <ClInclude Include="deps\yaml\iterpriv.h" />
+    <ClInclude Include="deps\yaml\ltnode.h" />
+    <ClInclude Include="deps\yaml\map.h" />
+    <ClInclude Include="deps\yaml\mark.h" />
+    <ClInclude Include="deps\yaml\node.h" />
+    <ClInclude Include="deps\yaml\nodeimpl.h" />
+    <ClInclude Include="deps\yaml\nodereadimpl.h" />
+    <ClInclude Include="deps\yaml\nodeutil.h" />
+    <ClInclude Include="deps\yaml\noncopyable.h" />
+    <ClInclude Include="deps\yaml\null.h" />
+    <ClInclude Include="deps\yaml\ostream.h" />
+    <ClInclude Include="deps\yaml\parser.h" />
+    <ClInclude Include="deps\yaml\parserstate.h" />
+    <ClInclude Include="deps\yaml\regex.h" />
+    <ClInclude Include="deps\yaml\regeximpl.h" />
+    <ClInclude Include="deps\yaml\scalar.h" />
+    <ClInclude Include="deps\yaml\scanner.h" />
+    <ClInclude Include="deps\yaml\scanscalar.h" />
+    <ClInclude Include="deps\yaml\sequence.h" />
+    <ClInclude Include="deps\yaml\setting.h" />
+    <ClInclude Include="deps\yaml\stlemitter.h" />
+    <ClInclude Include="deps\yaml\stream.h" />
+    <ClInclude Include="deps\yaml\streamcharsource.h" />
+    <ClInclude Include="deps\yaml\stringsource.h" />
+    <ClInclude Include="deps\yaml\token.h" />
+    <ClInclude Include="deps\yaml\yaml.h" />
+    <ClInclude Include="raytracer\image.h" />
+    <ClInclude Include="raytracer\light.h" />
+    <ClInclude Include="raytracer\lodepng.h" />
+    <ClInclude Include="raytracer\material.h" />
+    <ClInclude Include="raytracer\object.h" />
+    <ClInclude Include="raytracer\raytracer.h" />
+    <ClInclude Include="raytracer\scene.h" />
+    <ClInclude Include="raytracer\sphere.h" />
+    <ClInclude Include="raytracer\triple.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
