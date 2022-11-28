@@ -72,7 +72,7 @@ Color Scene::trace(const Ray &ray)
         color += diffuseColor;
 
         // Specular color calculation using blinn-phong model
-        Color specularColor = material->color * material->ks;
+        Color specularColor = Color(1.0, 1.0, 1.0) * material->ks;
         Vector H = (lightVector.normalized() + V).normalized();
         double NdotH = std::clamp(N.dot(H), 0.0, 1.0);
         specularColor *= pow(NdotH, 2.0 * material->n);
