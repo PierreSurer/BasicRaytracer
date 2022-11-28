@@ -14,7 +14,9 @@
 //  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
 //
 
+#include "material.h"
 #include "raytracer.h"
+#include "triangle.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,7 @@ int main(int argc, char *argv[])
         cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
         return 1;
     }
+
     std::string ofname;
     if (argc>=3) {
         ofname = argv[2];

@@ -25,11 +25,10 @@
 
 class Scene
 {
-private:
+public:
     std::vector<Object*> objects;
     std::vector<Light*> lights;
     Triple eye;
-public:
     Color trace(const Ray &ray);
     void render(Image &img);
     void addObject(Object *o);

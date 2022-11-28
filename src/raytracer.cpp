@@ -19,6 +19,7 @@
 #include "material.h"
 #include "light.h"
 #include "image.h"
+#include "triangle.h"
 #include "yaml/yaml.h"
 #include <ctype.h>
 #include <fstream>
@@ -41,7 +42,7 @@ Triple parseTriple(const YAML::Node& node)
     Triple t;
     node[0] >> t.x;
     node[1] >> t.y;
-    node[2] >> t.z;	
+    node[2] >> t.z;
     return t;
 }
 
@@ -77,6 +78,16 @@ Object* Raytracer::parseObject(const YAML::Node& node)
         node["size"] >> size;
         Box *box = new Box(pos, size);
         returnObject = box;
+    }
+    else if (objectType == "triangle") {
+        Point p1;
+        Point p2;
+        Point p3;
+        node["p1"] >> p1;
+        node["p2"] >> p2;
+        node["p3"] >> p3;
+        Triangle* tri = new Triangle(p1, p2, p3);
+        returnObject = tri;
     }
 
     if (returnObject) {

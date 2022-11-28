@@ -24,8 +24,6 @@
 
 class Raytracer {
 private:
-    Scene *scene;
-
     // Couple of private functions for parsing YAML nodes
     Material* parseMaterial(const YAML::Node& node);
     Object* parseObject(const YAML::Node& node);
@@ -33,6 +31,8 @@ private:
 
 public:
     Raytracer() { }
+
+    Scene *scene;
 
     bool readScene(const std::string& inputFilename);
     void renderToFile(const std::string& outputFilename);
