@@ -14,7 +14,9 @@
 //  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
 //
 
+#include "material.h"
 #include "raytracer.h"
+#include "triangle.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,10 +28,27 @@ int main(int argc, char *argv[])
 
     Raytracer raytracer;
 
-    if (!raytracer.readScene(argv[1])) {
-        cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
-        return 1;
-    }
+    // if (!raytracer.readScene(argv[1])) {
+    //     cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
+    //     return 1;
+    // }
+    
+    // raytracer.scene = new Scene();
+    Point p1(0, 0, 100);
+    Point p2(100, 0, 100);
+    Point p3(0, 100, 100);
+    Triangle* t = new Triangle(p1, p2, p3);
+    Material *m = new Material();
+    m->color = Color{ 1.0, 0.0, 0.0 };
+    m->ka = 10;
+    m->kd = 10;
+    m->ks = 10;
+    m->n = 100;
+    t->material = m;
+
+    raytracer.scene->objects = {};
+    raytracer.scene->addObject(t);
+    
     std::string ofname;
     if (argc>=3) {
         ofname = argv[2];
