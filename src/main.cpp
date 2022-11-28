@@ -32,22 +32,7 @@ int main(int argc, char *argv[])
         cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
         return 1;
     }
-    
-    Point p1(10, 10, 0);
-    Point p2(200, 10, 0);
-    Point p3(10, 200, 0);
-    Triangle* t = new Triangle(p1, p2, p3);
-    Material *m = new Material();
-    m->color = Color{ 1.0, 0.0, 0.0 };
-    m->ka = 10;
-    m->kd = 10;
-    m->ks = 10;
-    m->n = 100;
-    t->material = m;
 
-    raytracer.scene->objects = {};
-    raytracer.scene->addObject(t);
-    
     std::string ofname;
     if (argc>=3) {
         ofname = argv[2];

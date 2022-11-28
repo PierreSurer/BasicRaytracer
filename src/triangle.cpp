@@ -36,9 +36,9 @@ Hit Triangle::intersect(const Ray &ray)
     float t = (p1 - ray.O).dot(N) / proj;
     Vector target = ray.O + ray.D * t;
     
-    // test if hit is inside triangle : the point is on the left side
-    // of all oriented edges of the triangle.
-    // (oriented clockwise from p1 to p2 to p3 to p1)
+    // test if hit is inside triangle: the point is on the left side of all
+    // oriented edges of the triangle. (oriented clockwise from p1 to p2 to p3
+    // to p1)
     if (
         N.dot((p2 - p1).cross(target - p1)) > 0 &&
         N.dot((p3 - p2).cross(target - p2)) > 0 &&

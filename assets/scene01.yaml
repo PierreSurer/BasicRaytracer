@@ -19,6 +19,16 @@ Lights:
   color: [1.0,1.0,1.0]
 
 Objects:
+- type: triangle
+  p1: [200,200,200]
+  p2: [400,200,200]
+  p3: [200,400,200]
+  material: # blue
+    color: [0.0,0.0,1.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.5
+    n: 64
 - type: sphere
   position: [90,320,100]
   radius: 50
