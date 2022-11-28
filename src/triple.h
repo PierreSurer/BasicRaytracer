@@ -76,6 +76,11 @@ public:
         return Triple(f*t.x, f*t.y, f*t.z);
     }
 
+    Triple operator/(const Triple &t) const
+    {
+        return Triple(x/t.x,y/t.y,z/t.z);
+    }
+
     Triple operator/(double f) const
     {
         double invf = 1.0/f;
