@@ -29,24 +29,20 @@ Hit Triangle::intersect(const Ray &ray)
 
     float proj = ray.D.dot(N);
     if (proj > 0) { // triangle faces away => is invisible
-        std::cout << "hello" << std::endl;
         return Hit::NO_HIT();
     }
     
     // project the ray on the plane surface
-    float t = (p1 - ray.D).dot(N) / proj;
+    float t = (p1 - ray.O).dot(N) / proj;
     Vector target = ray.O + ray.D * t;
-    
-    return Hit(t, N);
     
     // test if hit is inside triangle : the point is on the left side
     // of all oriented edges of the triangle.
     // (oriented clockwise from p1 to p2 to p3 to p1)
-    
     if (
-        (p2 - p1).dot(target - p1) > 0 &&
-        (p3 - p2).dot(target - p2) > 0 &&
-        (p1 - p3).dot(target - p3) > 0
+        N.dot((p2 - p1).cross(target - p1)) > 0 &&
+        N.dot((p3 - p2).cross(target - p2)) > 0 &&
+        N.dot((p1 - p3).cross(target - p3)) > 0
     ) {
         return Hit(t, N);
     }

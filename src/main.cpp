@@ -28,15 +28,14 @@ int main(int argc, char *argv[])
 
     Raytracer raytracer;
 
-    // if (!raytracer.readScene(argv[1])) {
-    //     cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
-    //     return 1;
-    // }
+    if (!raytracer.readScene(argv[1])) {
+        cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
+        return 1;
+    }
     
-    // raytracer.scene = new Scene();
-    Point p1(0, 0, 100);
-    Point p2(100, 0, 100);
-    Point p3(0, 100, 100);
+    Point p1(10, 10, 0);
+    Point p2(200, 10, 0);
+    Point p3(10, 200, 0);
     Triangle* t = new Triangle(p1, p2, p3);
     Material *m = new Material();
     m->color = Color{ 1.0, 0.0, 0.0 };
