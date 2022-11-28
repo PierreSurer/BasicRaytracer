@@ -19,6 +19,15 @@ Lights:
   color: [1.0,1.0,1.0]
 
 Objects:
+- type: box
+  position: [90,320,100]
+  size: 40
+  material: # cyan
+    color: [0.0,1.0,1.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.5
+    n: 64
 - type: sphere
   position: [90,320,100]
   radius: 50
