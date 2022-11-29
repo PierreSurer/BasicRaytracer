@@ -19,6 +19,16 @@ Lights:
   color: [1.0,1.0,1.0]
 
 Objects:
+
+- type: mesh
+  file: "suzanne2.obj"
+  material: # cyan
+    color: [0.0,1.0,1.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.5
+    n: 64
+
 - type: box
   position: [90,320,100]
   size: 40
@@ -28,6 +38,7 @@ Objects:
     kd: 0.7
     ks: 0.5
     n: 64
+
 # - type: triangle
 #   p1: [200,200,200]
 #   p2: [400,200,200]

@@ -14,7 +14,9 @@
 
 #include "raytracer.h"
 #include "box.h"
+#include "mesh.h"
 #include "object.h"
+#include "parseObj.h"
 #include "sphere.h"
 #include "material.h"
 #include "light.h"
@@ -31,7 +33,7 @@ Triple parseTriple(const YAML::Node& node);
 
 void operator >> (const YAML::Node& node, Triple& t)
 {
-    assert(node.size()==3);
+    assert(node.size() == 3);
     node[0] >> t.x;
     node[1] >> t.y;
     node[2] >> t.z;
@@ -86,8 +88,15 @@ Object* Raytracer::parseObject(const YAML::Node& node)
         node["p1"] >> p1;
         node["p2"] >> p2;
         node["p3"] >> p3;
-        Triangle* tri = new Triangle(p1, p2, p3);
+        Triangle *tri = new Triangle(p1, p2, p3);
         returnObject = tri;
+    }
+    else if (objectType == "mesh") {
+        std::string fname;
+        node["file"] >> fname;
+        fname = assetsDir + fname;
+        Mesh *mesh = new Mesh(parseObj(fname));
+        returnObject = mesh;
     }
 
     if (returnObject) {
@@ -101,8 +110,8 @@ Object* Raytracer::parseObject(const YAML::Node& node)
 Light* Raytracer::parseLight(const YAML::Node& node)
 {
     Point position;
-    node["position"] >> position;
     Color color;
+    node["position"] >> position;
     node["color"] >> color;
     return new Light(position,color);
 }
@@ -113,6 +122,11 @@ Light* Raytracer::parseLight(const YAML::Node& node)
 
 bool Raytracer::readScene(const std::string& inputFilename)
 {
+    // extract assets directory name from inputFilename
+    // TODO: this is quick and unsafe
+    assetsDir = inputFilename.substr(0, inputFilename.find_last_of("/\\") + 1);
+
+    
     // Initialize a new scene
     scene = new Scene();
 

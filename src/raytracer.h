@@ -23,6 +23,8 @@
 
 class Raytracer {
 private:
+    std::string assetsDir;
+    
     // Couple of private functions for parsing YAML nodes
     Material* parseMaterial(const YAML::Node& node);
     Object* parseObject(const YAML::Node& node);

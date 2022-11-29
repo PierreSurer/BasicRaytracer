@@ -34,15 +34,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    Mesh mesh = parseObj("../assets/suzanne2.obj");
-    mesh.material = new Material();
-    mesh.material->color = Triple{ 1, 0, 0 };
-    mesh.material->ka = 0.2;
-    mesh.material->kd = 0.7;
-    mesh.material->ks = 0.5;
-    mesh.material->n = 64;
-    raytracer.scene->objects.push_back(&mesh);
-
     std::string ofname;
     if (argc>=3) {
         ofname = argv[2];
