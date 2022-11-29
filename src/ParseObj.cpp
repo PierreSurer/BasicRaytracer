@@ -2,13 +2,18 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <glm/glm.hpp>
+
+using namespace glm;
 
 Mesh parseObj(const std::string &filename)
 {
-  std::vector<glm::dvec3> verts;
-  std::vector<Triangle> faces;
+  std::vector<dvec3> verts, texCoords, normals;
+  std::vector<Mesh::Triangle> faces;
 
-  const std::regex face_desc("^f (\\d+).* (\\d+).* (\\d+)");
+  const std::regex face_desc(
+    "^f (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+)"
+  );
 
   std::ifstream file;
   file.open(filename);
@@ -21,10 +26,10 @@ Mesh parseObj(const std::string &filename)
     if (line.size() > 0 && line[0] == '#')
       continue;
 
-    char c;
+    std::string c;
     iss >> c;
 
-    if (c == 'v') {
+    if (c == "v") {
       double x, y, z;
       iss >> x >> y >> z;
       x = x * 100 + 200;
@@ -32,14 +37,33 @@ Mesh parseObj(const std::string &filename)
       z = z * 100 + 200;
       verts.emplace_back(x, y, z);
     }
-    else if (c == 'f') {
+    if (c == "vn") {
+      double x, y, z;
+      iss >> x >> y >> z;
+      normals.emplace_back(x, y, z);
+    }
+    if (c == "vt") {
+      double u, v;
+      iss >> u >> v;
+      texCoords.emplace_back(u, v, 0.0);
+    }
+    else if (c == "f") {
       std::smatch match;
       regex_search(line, match, face_desc);
-      int i, j, k;
-      i = std::stoi(match.str(1));
-      j = std::stoi(match.str(2));
-      k = std::stoi(match.str(3));
-      faces.emplace_back(verts[i-1], verts[j-1], verts[k-1]);
+      int p1, p2, p3, t1, t2, t3, n1, n2, n3;
+      p1 = std::stoi(match.str(1));
+      p2 = std::stoi(match.str(4));
+      p3 = std::stoi(match.str(7));
+      t1 = std::stoi(match.str(2));
+      t2 = std::stoi(match.str(5));
+      t3 = std::stoi(match.str(8));
+      n1 = std::stoi(match.str(3));
+      n2 = std::stoi(match.str(6));
+      n3 = std::stoi(match.str(9));
+      faces.emplace_back(
+        verts[p1-1], verts[p2-1], verts[p3-1],
+        normals[n1-1], normals[n2-1], normals[n3-1]
+      );
     }
   }
 
