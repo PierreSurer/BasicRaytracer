@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory.h>
+#include <memory>
 #include "Light.hpp"
 #include <glm/glm.hpp>
 
