@@ -21,7 +21,7 @@ Lights:
 Objects:
 
 - type: mesh
-  file: "suzanne2.obj"
+  file: "suzanne.obj"
   material: # cyan
     color: [0.0,1.0,1.0]
     ka: 0.2

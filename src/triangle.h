@@ -23,7 +23,7 @@ public:
         : p1(p1), p2(p2), p3(p3)
     { }
 
-    Hit intersect(const Ray &ray) const;
+    Hit intersect(const Ray &ray) const override;
 
     // p1, p2, p3 must be in counter-clockwise order when looking at the visible side.
     const Point p1, p2, p3;
