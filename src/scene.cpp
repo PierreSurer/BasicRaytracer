@@ -88,6 +88,7 @@ void Scene::render(Image &img)
     int w = img.width();
     int h = img.height();
     for (int y = 0; y < h; y++) {
+        std::cout << (float)y / h * 100.f << " %" << std::endl;
         for (int x = 0; x < w; x++) {
             Point pixel(x+0.5, h-1-y+0.5, 0);
             Ray ray(eye, (pixel-eye).normalized());
