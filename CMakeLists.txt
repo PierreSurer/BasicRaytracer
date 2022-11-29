@@ -25,5 +25,11 @@ set(INCLUDES
 
 add_executable(Raytracer ${SOURCE})
 
+# setup openmp
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(Raytracer PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 
 target_include_directories(Raytracer PUBLIC ${INCLUDES})

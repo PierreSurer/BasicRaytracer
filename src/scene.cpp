@@ -22,7 +22,7 @@ Color Scene::trace(const Ray &ray)
 {
     // Find hit object and distance
     Hit min_hit(std::numeric_limits<double>::infinity(),Vector());
-    Object *obj = NULL;
+    Object *obj = nullptr;
     for (unsigned int i = 0; i < objects.size(); ++i) {
         Hit hit(objects[i]->intersect(ray));
         if (hit.t<min_hit.t) {
@@ -87,14 +87,15 @@ void Scene::render(Image &img)
 {
     int w = img.width();
     int h = img.height();
+
+    #pragma omp parallel for
     for (int y = 0; y < h; y++) {
-        std::cout << (float)y / h * 100.f << " %" << std::endl;
         for (int x = 0; x < w; x++) {
-            Point pixel(x+0.5, h-1-y+0.5, 0);
-            Ray ray(eye, (pixel-eye).normalized());
+            Point pixel(x + 0.5, h - 1 - y + 0.5, 0);
+            Ray ray(eye, (pixel - eye).normalized());
             Color col = trace(ray);
             col.clamp();
-            img(x,y) = col;
+            img(x, y) = col;
         }
     }
 }
