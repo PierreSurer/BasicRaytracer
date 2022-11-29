@@ -11,6 +11,8 @@ public:
     std::vector<std::unique_ptr<Object>> objects;
     std::vector<std::unique_ptr<Light>> lights;
     glm::dvec3 eye;
-    Color trace(const Ray &ray);
+    Color traceColor(const Ray &ray);
+    Color traceDepth(const Ray &ray, double near, double far);
+    Color traceNormals(const Ray &ray);
     void render(Image &img);
 };

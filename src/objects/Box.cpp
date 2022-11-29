@@ -14,7 +14,10 @@ Hit Box::intersect(const Ray &ray) const
     if(tNear > tFar) return Hit::NO_HIT();
     
     glm::dvec3 intersectionPoint = ray.at(tNear);
-    glm::dvec3 N = normalize(intersectionPoint - position);
+    glm::dvec3 N;
+    if(t1.x == tNear) N = {-glm::sign(ray.D.x), 0.0, 0.0};
+    if(t1.y == tNear) N = {0.0, -glm::sign(ray.D.y), 0.0};
+    if(t1.z == tNear) N = {0.0, 0.0, -glm::sign(ray.D.z)};
 
     return Hit(tNear, N);
 }

@@ -2,7 +2,7 @@
 #include "Material.hpp"
 #include <algorithm>
 
-Color Scene::trace(const Ray &ray)
+Color Scene::traceColor(const Ray &ray)
 {
     // Find hit object and distance
     Hit min_hit(std::numeric_limits<double>::infinity(), glm::dvec3());
@@ -23,24 +23,6 @@ Color Scene::trace(const Ray &ray)
     glm::dvec3 N = min_hit.N;                          //the normal at hit point
     glm::dvec3 V = -ray.D;                             //the view vector
 
-
-    /****************************************************
-    * This is where you should insert the color
-    * calculation (Phong model).
-    *
-    * Given: material, hit, N, V, lights[]
-    * Sought: color
-    *
-    * Hints: (see triple.h)
-    *        Triple.dot(Vector) dot product
-    *        Vector+Vector      vector sum
-    *        Vector-Vector      vector difference
-    *        Point-Point        yields vector
-    *        Vector.normalize() normalizes vector, returns length
-    *        double*Color        scales each color component (r,g,b)
-    *        Color*Color        dito
-    *        pow(a,b)           a to the power of b
-    ****************************************************/
     double totalIntensity = 0.0f;
     for(auto const& light : lights)
         totalIntensity += light->ambientPower;
@@ -67,6 +49,50 @@ Color Scene::trace(const Ray &ray)
     return color;
 }
 
+Color Scene::traceDepth(const Ray &ray, double near, double far)
+{
+    Ray newRay(ray.at(near), ray.D);
+
+    // Find hit object and distance
+    Hit min_hit(far - near, glm::dvec3());
+    Object *obj = nullptr;
+    for (unsigned int i = 0; i < objects.size(); ++i) {
+        Hit hit(objects[i]->intersect(newRay));
+        if (hit.t < min_hit.t) {
+            min_hit = hit;
+            obj = objects[i].get();
+        }
+    }
+
+    // No hit? Return background color.
+    if (!obj) return Color(0.0, 0.0, 0.0);
+    double z = 1.0 - min_hit.t / (far - near); // Linearized depth
+    Color color = Color(1.0) * z;
+
+    return color;
+}
+
+Color Scene::traceNormals(const Ray &ray)
+{
+    // Find hit object and distance
+    Hit min_hit(std::numeric_limits<double>::infinity(), glm::dvec3());
+    Object *obj = nullptr;
+    for (unsigned int i = 0; i < objects.size(); ++i) {
+        Hit hit(objects[i]->intersect(ray));
+        if (hit.t < min_hit.t) {
+            min_hit = hit;
+            obj = objects[i].get();
+        }
+    }
+
+    // No hit? Return background color.
+    if (!obj) return Color(0.0, 0.0, 0.0);
+
+    glm::dvec3 N = min_hit.N;                          //the normal at hit point
+
+    return Color(1.0 + N) * 0.5;
+}
+
 void Scene::render(Image &img)
 {
     int w = img.width();
@@ -77,7 +103,7 @@ void Scene::render(Image &img)
         for (int x = 0; x < w; x++) {
             glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
             Ray ray(eye, normalize(pixel - eye));
-            Color col = trace(ray);
+            Color col = traceNormals(ray);
             col = clamp(col, 0.0, 1.0);
             img(x, y) = col;
         }
