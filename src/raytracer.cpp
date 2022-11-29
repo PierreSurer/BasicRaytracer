@@ -1,119 +1,101 @@
-//
-//  Framework for a raytracer
-//  File: raytracer.cpp
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Author: Maarten Everts
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
-#include "raytracer.h"
-#include "box.h"
-#include "mesh.h"
-#include "object.h"
-#include "parseObj.h"
-#include "sphere.h"
-#include "material.h"
-#include "light.h"
-#include "image.h"
-#include "triangle.h"
+#include "Raytracer.hpp"
+#include "objects/Box.hpp"
+#include "objects/Mesh.hpp"
+#include "objects/Object.hpp"
+#include "objects/Sphere.hpp"
+#include "objects/Light.hpp"
+#include "objects/Triangle.hpp"
+#include "Material.hpp"
+#include "Image.hpp"
+#include "ParseObj.hpp"
 #include "yaml/yaml.h"
 #include <ctype.h>
 #include <fstream>
 #include <assert.h>
 
 // Functions to ease reading from YAML input
-void operator >> (const YAML::Node& node, Triple& t);
-Triple parseTriple(const YAML::Node& node);
+void operator >> (const YAML::Node& node, glm::dvec3& v);
+glm::dvec3 parseVector(const YAML::Node& node);
 
-void operator >> (const YAML::Node& node, Triple& t)
+void operator >> (const YAML::Node& node, glm::dvec3& v)
 {
     assert(node.size() == 3);
-    node[0] >> t.x;
-    node[1] >> t.y;
-    node[2] >> t.z;
+    node[0] >> v.x;
+    node[1] >> v.y;
+    node[2] >> v.z;
 }
 
-Triple parseTriple(const YAML::Node& node)
+glm::dvec3 parseVector(const YAML::Node& node)
 {
-    Triple t;
-    node[0] >> t.x;
-    node[1] >> t.y;
-    node[2] >> t.z;
-    return t;
+    glm::dvec3 v;
+    node[0] >> v.x;
+    node[1] >> v.y;
+    node[2] >> v.z;
+    return v;
 }
 
-Material* Raytracer::parseMaterial(const YAML::Node& node)
+std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
 {
-    Material *m = new Material();
+    std::unique_ptr<Material> m = std::make_unique<Material>();
     node["color"] >> m->color;	
     node["ka"] >> m->ka;
     node["kd"] >> m->kd;
     node["ks"] >> m->ks;
     node["n"] >> m->n;
-    return m;
+    return std::move(m);
 }
 
-Object* Raytracer::parseObject(const YAML::Node& node)
+std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
 {
-    Object *returnObject = NULL;
+    std::unique_ptr<Object> returnObject;
     std::string objectType;
     node["type"] >> objectType;
 
     if (objectType == "sphere") {
-        Point pos;
+        glm::dvec3 pos;
         double r;
         node["position"] >> pos;
         node["radius"] >> r;
-        Sphere *sphere = new Sphere(pos, r);
-        returnObject = sphere;
+        returnObject = std::make_unique<Sphere>(pos, r);
     }
     else if (objectType == "box") {
-        Point pos;
+        glm::dvec3 pos;
         double size;
         node["position"] >> pos;
         node["size"] >> size;
-        Box *box = new Box(pos, size);
-        returnObject = box;
+        returnObject = std::make_unique<Box>(pos, size);
     }
     else if (objectType == "triangle") {
-        Point p1;
-        Point p2;
-        Point p3;
+        glm::dvec3 p1;
+        glm::dvec3 p2;
+        glm::dvec3 p3;
         node["p1"] >> p1;
         node["p2"] >> p2;
         node["p3"] >> p3;
-        Triangle *tri = new Triangle(p1, p2, p3);
-        returnObject = tri;
+        returnObject = std::make_unique<Triangle>(p1, p2, p3);
     }
     else if (objectType == "mesh") {
         std::string fname;
         node["file"] >> fname;
         fname = assetsDir + fname;
-        Mesh *mesh = new Mesh(parseObj(fname));
-        returnObject = mesh;
+        returnObject = std::make_unique<Mesh>(parseObj(fname));
     }
 
     if (returnObject) {
         // read the material and attach to object
-        returnObject->material = parseMaterial(node["material"]);
+        returnObject->material = std::move(parseMaterial(node["material"]));
     }
 
-    return returnObject;
+    return std::move(returnObject);
 }
 
-Light* Raytracer::parseLight(const YAML::Node& node)
+std::unique_ptr<Light> Raytracer::parseLight(const YAML::Node& node)
 {
-    Point position;
+    glm::dvec3 position;
     Color color;
     node["position"] >> position;
     node["color"] >> color;
-    return new Light(position,color);
+    return std::make_unique<Light>(position, color);
 }
 
 /*
@@ -126,14 +108,13 @@ bool Raytracer::readScene(const std::string& inputFilename)
     // TODO: this is quick and unsafe
     assetsDir = inputFilename.substr(0, inputFilename.find_last_of("/\\") + 1);
 
-    
     // Initialize a new scene
-    scene = new Scene();
+    scene = std::make_unique<Scene>();
 
     // Open file stream for reading and have the YAML module parse it
     std::ifstream fin(inputFilename.c_str());
     if (!fin) {
-        cerr << "Error: unable to open " << inputFilename << " for reading." << endl;;
+        std::cerr << "Error: unable to open " << inputFilename << " for reading." << std::endl;;
         return false;
     }
     try {
@@ -143,28 +124,28 @@ bool Raytracer::readScene(const std::string& inputFilename)
             parser.GetNextDocument(doc);
 
             // Read scene configuration options
-            scene->eye = parseTriple(doc["Eye"]);
+            scene->eye = parseVector(doc["Eye"]);
 
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
             if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
-                cerr << "Error: expected a sequence of objects." << endl;
+                std::cerr << "Error: expected a sequence of objects." << std::endl;
                 return false;
             }
-            for(YAML::Iterator it=sceneObjects.begin();it!=sceneObjects.end();++it) {
-                Object *obj = parseObject(*it);
+            for(YAML::Iterator it=sceneObjects.begin(); it!=sceneObjects.end(); ++it) {
+                std::unique_ptr<Object> obj = parseObject(*it);
                 // Only add object if it is recognized
                 if (obj) {
-                    scene->objects.push_back(obj);
+                    scene->objects.push_back(std::move(obj));
                 } else {
-                    cerr << "Warning: found object of unknown type, ignored." << endl;
+                    std::cerr << "Warning: found object of unknown type, ignored." << std::endl;
                 }
             }
 
             // Read and parse light definitions
             const YAML::Node& sceneLights = doc["Lights"];
             if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
-                cerr << "Error: expected a sequence of lights." << endl;
+                std::cerr << "Error: expected a sequence of lights." << std::endl;
                 return false;
             }
             for(YAML::Iterator it=sceneLights.begin();it!=sceneLights.end();++it) {
@@ -172,23 +153,23 @@ bool Raytracer::readScene(const std::string& inputFilename)
             }
         }
         if (parser) {
-            cerr << "Warning: unexpected YAML document, ignored." << endl;
+            std::cerr << "Warning: unexpected YAML document, ignored." << std::endl;
         }
     } catch(YAML::ParserException& e) {
         std::cerr << "Error at line " << e.mark.line + 1 << ", col " << e.mark.column + 1 << ": " << e.msg << std::endl;
         return false;
     }
 
-    cout << "YAML parsing results: " << scene->objects.size() << " objects read." << endl;
+    std::cout << "YAML parsing results: " << scene->objects.size() << " objects read." << std::endl;
     return true;
 }
 
 void Raytracer::renderToFile(const std::string& outputFilename)
 {
     Image img(400,400);
-    cout << "Tracing..." << endl;
+    std::cout << "Tracing..." << std::endl;
     scene->render(img);
-    cout << "Writing image to " << outputFilename << "..." << endl;
+    std::cout << "Writing image to " << outputFilename << "..." << std::endl;
     img.writePng(outputFilename.c_str());
-    cout << "Done." << endl;
+    std::cout << "Done." << std::endl;
 }

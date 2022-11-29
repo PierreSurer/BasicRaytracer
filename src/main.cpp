@@ -1,36 +1,19 @@
-//
-//  Framework for a raytracer
-//  File: main.cpp
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Authors:
-//    Maarten Everts
-//    Jasper van de Gronde
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
-#include "material.h"
-#include "parseObj.h"
-#include "raytracer.h"
-#include "triangle.h"
+#include "Material.hpp"
+#include "ParseObj.hpp"
+#include "Raytracer.hpp"
 
 int main(int argc, char *argv[])
 {
-    cout << "Introduction to Computer Graphics - Raytracer" << endl << endl;
+    std::cout << "Introduction to Computer Graphics - Raytracer" << std::endl << std::endl;
     if (argc < 2 || argc > 3) {
-        cerr << "Usage: " << argv[0] << " in-file [out-file.png]" << endl;
+        std::cerr << "Usage: " << argv[0] << " in-file [out-file.png]" << std::endl;
         return 1;
     }
 
     Raytracer raytracer;
 
     if (!raytracer.readScene(argv[1])) {
-        cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< endl;
+        std::cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< std::endl;
         return 1;
     }
 

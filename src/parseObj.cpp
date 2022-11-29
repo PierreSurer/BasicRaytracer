@@ -1,25 +1,11 @@
-//
-//  Framework for a raytracer
-//  File: parseObj.cpp
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Author: Maarten Everts
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
-#include "parseObj.h"
+#include "ParseObj.hpp"
 #include <fstream>
 #include <sstream>
 #include <regex>
 
 Mesh parseObj(const std::string &filename)
 {
-  std::vector<Point> verts;
+  std::vector<glm::dvec3> verts;
   std::vector<Triangle> faces;
 
   const std::regex face_desc("^f (\\d+).* (\\d+).* (\\d+)");
@@ -47,7 +33,7 @@ Mesh parseObj(const std::string &filename)
       verts.emplace_back(x, y, z);
     }
     else if (c == 'f') {
-      smatch match;
+      std::smatch match;
       regex_search(line, match, face_desc);
       int i, j, k;
       i = std::stoi(match.str(1));

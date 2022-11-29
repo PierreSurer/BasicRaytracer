@@ -1,18 +1,4 @@
-//
-//  Framework for a raytracer
-//  File: image.cpp
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Author: Maarten Everts
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
-#include "image.h"
+#include "Image.hpp"
 #include "lodepng.h"
 #include <fstream>
 
@@ -59,12 +45,12 @@ void Image::readPng(const char* filename)
     //decode the png
     LodePNG::Decoder decoder;
     decoder.decode(image, buffer.empty() ? 0 : &buffer[0], (unsigned)buffer.size());
-    cout << decoder.getChannels() << endl;
-    cout << decoder.getBpp() << endl;
+    std::cout << decoder.getChannels() << std::endl;
+    std::cout << decoder.getBpp() << std::endl;
 
     if (decoder.getChannels()<3 || decoder.getBpp()<24) {
-        cerr << "Error: only color (RGBA), 8 bit per channel png images are supported." << endl;
-        cerr << "Either convert your image or change the sourcecode." << endl;
+        std::cerr << "Error: only color (RGBA), 8 bit per channel png images are supported." << std::endl;
+        std::cerr << "Either convert your image or change the sourcecode." << std::endl;
         exit(1);
     }
     int w = decoder.getWidth();

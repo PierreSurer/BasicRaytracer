@@ -1,43 +1,27 @@
-//
-//  Framework for a raytracer
-//  File: scene.cpp
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Authors:
-//    Maarten Everts
-//    Jasper van de Gronde
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
-#include "scene.h"
-#include "material.h"
+#include "Scene.hpp"
+#include "Material.hpp"
 #include <algorithm>
 
 Color Scene::trace(const Ray &ray)
 {
     // Find hit object and distance
-    Hit min_hit(std::numeric_limits<double>::infinity(),Vector());
+    Hit min_hit(std::numeric_limits<double>::infinity(), glm::dvec3());
     Object *obj = nullptr;
     for (unsigned int i = 0; i < objects.size(); ++i) {
         Hit hit(objects[i]->intersect(ray));
-        if (hit.t<min_hit.t) {
+        if (hit.t < min_hit.t) {
             min_hit = hit;
-            obj = objects[i];
+            obj = objects[i].get();
         }
     }
 
     // No hit? Return background color.
     if (!obj) return Color(0.0, 0.0, 0.0);
 
-    Material *material = obj->material;            //the hit objects material
-    Point hit = ray.at(min_hit.t);                 //the hit point
-    Vector N = min_hit.N;                          //the normal at hit point
-    Vector V = -ray.D;                             //the view vector
+    Material *material = obj->material.get();            //the hit objects material
+    glm::dvec3 hit = ray.at(min_hit.t);                 //the hit point
+    glm::dvec3 N = min_hit.N;                          //the normal at hit point
+    glm::dvec3 V = -ray.D;                             //the view vector
 
 
     /****************************************************
@@ -57,26 +41,26 @@ Color Scene::trace(const Ray &ray)
     *        Color*Color        dito
     *        pow(a,b)           a to the power of b
     ****************************************************/
-    float totalIntensity = 0.0f;
-    for(auto light : lights)
+    double totalIntensity = 0.0f;
+    for(auto const& light : lights)
         totalIntensity += light->ambientPower;
 
     Color color = material->color * material->ka * totalIntensity;
-    for(auto light : lights) {
-        Vector lightVector = light->position - hit; // Not normalized as we need magnitude
+    for(auto const& light : lights) {
+        glm::dvec3 lightVector = light->position - hit; // Not normalized as we need magnitude
 
         // Diffuse color calculation
         Color diffuseColor = material->color * material->kd;
-        diffuseColor *= std::clamp(N.dot(lightVector.normalized()), 0.0, 1.0);
-        diffuseColor *= light->diffusePower/ (lightVector.length() * lightVector.length());
+        diffuseColor *= std::clamp(dot(N, normalize(lightVector)), 0.0, 1.0);
+        diffuseColor *= light->diffusePower/ (length(lightVector) * length(lightVector));
         color += diffuseColor;
 
         // Specular color calculation using blinn-phong model
-        Color specularColor = Color(1.0, 1.0, 1.0) * material->ks;
-        Vector H = (lightVector.normalized() + V).normalized();
-        double NdotH = std::clamp(N.dot(H), 0.0, 1.0);
+        Color specularColor = Color(1.0) * material->ks;
+        glm::dvec3 H = normalize(normalize(lightVector) + V);
+        double NdotH = std::clamp(dot(N, H), 0.0, 1.0);
         specularColor *= pow(NdotH, 2.0 * material->n);
-        specularColor *= light->specularPower / (lightVector.length() * lightVector.length());
+        specularColor *= light->specularPower / (length(lightVector) * length(lightVector));
         color += specularColor;
     }
 
@@ -91,10 +75,10 @@ void Scene::render(Image &img)
     #pragma omp parallel for
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
-            Point pixel(x + 0.5, h - 1 - y + 0.5, 0);
-            Ray ray(eye, (pixel - eye).normalized());
+            glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
+            Ray ray(eye, normalize(pixel - eye));
             Color col = trace(ray);
-            col.clamp();
+            col = clamp(col, 0.0, 1.0);
             img(x, y) = col;
         }
     }
