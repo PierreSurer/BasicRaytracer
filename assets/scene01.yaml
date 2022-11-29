@@ -21,7 +21,7 @@ Lights:
 Objects:
 
 - type: mesh
-  file: "suzanne.obj"
+  file: "suzanne3.obj"
   material: # cyan
     color: [0.0,1.0,1.0]
     ka: 0.2
@@ -29,15 +29,15 @@ Objects:
     ks: 0.5
     n: 64
 
-- type: box
-  position: [90,320,100]
-  size: 40
-  material: # cyan
-    color: [0.0,1.0,1.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
+# - type: box
+#   position: [90,320,100]
+#   size: 40
+#   material: # cyan
+#     color: [0.0,1.0,1.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
 
 # - type: triangle
 #   p1: [200,200,200]
