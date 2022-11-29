@@ -5,9 +5,7 @@
 //  Created for the Computer Science course "Introduction Computer Graphics"
 //  taught at the University of Groningen by Tobias Isenberg.
 //
-//  Authors:
-//    Maarten Everts
-//    Jasper van de Gronde
+//  Author: Maarten Everts
 //
 //  This framework is inspired by and uses code of the raytracer framework of 
 //  Bert Freudenberg that can be found at
@@ -21,10 +19,12 @@
 class Triangle : public Object
 {
 public:
-    Triangle(Point p1, Point p2, Point p3) : p1(p1), p2(p2), p3(p3) { }
+    Triangle(Point p1, Point p2, Point p3)
+        : p1(p1), p2(p2), p3(p3)
+    { }
 
-    virtual Hit intersect(const Ray &ray);
+    Hit intersect(const Ray &ray) const;
 
-    // p1, p2, p3 must be in clockwise order when looking at the visible side.
+    // p1, p2, p3 must be in counter-clockwise order when looking at the visible side.
     const Point p1, p2, p3;
 };

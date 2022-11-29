@@ -5,9 +5,7 @@
 //  Created for the Computer Science course "Introduction Computer Graphics"
 //  taught at the University of Groningen by Tobias Isenberg.
 //
-//  Authors:
-//    Maarten Everts
-//    Jasper van de Gronde
+//  Author: Maarten Everts
 //
 //  This framework is inspired by and uses code of the raytracer framework of 
 //  Bert Freudenberg that can be found at
@@ -18,17 +16,16 @@
 #include <iostream>
 #include <math.h>
 
-/************************** Triangle **********************************/
-
-Hit Triangle::intersect(const Ray &ray)
+Hit Triangle::intersect(const Ray &ray) const
 {
     // compute a normal
     Point d1 = p2 - p1;
     Point d2 = p3 - p1;
     Vector N = d1.cross(d2).normalized();
 
+    // test for backface culling: triangle faces away => is invisible
     float proj = ray.D.dot(N);
-    if (proj > 0) { // triangle faces away => is invisible
+    if (proj > 0) {
         return Hit::NO_HIT();
     }
     
@@ -37,8 +34,8 @@ Hit Triangle::intersect(const Ray &ray)
     Vector target = ray.O + ray.D * t;
     
     // test if hit is inside triangle: the point is on the left side of all
-    // oriented edges of the triangle. (oriented clockwise from p1 to p2 to p3
-    // to p1)
+    // oriented edges of the triangle.
+    // (oriented counter-clockwise from p1 to p2 to p3 to p1)
     if (
         N.dot((p2 - p1).cross(target - p1)) > 0 &&
         N.dot((p3 - p2).cross(target - p2)) > 0 &&

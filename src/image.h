@@ -12,8 +12,7 @@
 //  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
 //
 
-#ifndef IMAGE_H_IOLFQARK
-#define IMAGE_H_IOLFQARK
+#pragma once
 
 #include <iostream>
 #include "triple.h"
@@ -21,34 +20,26 @@
 
 class Image
 {
-protected:
-    Color* _pixel;
-    int _width;
-    int _height;
-
 public:
     Image(int width=0, int height=0)
-        : _pixel(0), _width(0), _height(0)
+        : _pixel(nullptr), _width(0), _height(0)
     {
-        set_extent(width, height);    //creates array
+        setSize(width, height);    //creates array
     }
 
-    Image(const char *imageFilename)
-        : _pixel(0), _width(0), _height(0)
+    Image(const char *imageFilename): Image()
     {
-        read_png(imageFilename);
+        readPng(imageFilename);
     }
-
-
 
     ~Image()
     {
-        if (_pixel) delete[] _pixel;
+        delete[] _pixel;
     }
 
     // Normal accessors
-    inline void put_pixel(int x, int y, Color c);
-    inline Color get_pixel(int x, int y) const;
+    inline void putPixel(int x, int y, Color c);
+    inline Color getPixel(int x, int y) const;
 
     // Handier accessors
     // Usage: color = img(x,y);
@@ -63,13 +54,13 @@ public:
     inline void derivativeAt(float x, float y, float *dx, float *dy) const;
 
     // Image parameters
-    inline int width() const    { return _width; }
-    inline int height() const   { return _height; }
-    inline int size() const     { return _width * _height; }
+    inline int width() const  { return _width; }
+    inline int height() const { return _height; }
+    inline int size() const   { return _width * _height; }
 
     // File stuff
-    void write_png(const char* filename) const;
-    void read_png(const char* filename);
+    void writePng(const char* filename) const;
+    void readPng(const char* filename);
 
 protected:
 
@@ -83,19 +74,23 @@ protected:
     { return index(int(x * (_width-1)), int(y * (_height-1))); }
 
     // Create a picture. Return false if failed.
-    bool set_extent(int width, int height);
+    bool setSize(int width, int height);
 
+protected:
+    Color* _pixel;
+    int _width;
+    int _height;
 };
 
 
 //Inline functions
 
-inline void Image::put_pixel(int x, int y, Color c)
+inline void Image::putPixel(int x, int y, Color c)
 {
     (*this)(x, y) = c;
 }
 
-inline Color Image::get_pixel(int x, int y) const
+inline Color Image::getPixel(int x, int y) const
 {
     return (*this)(x, y);
 }
@@ -122,5 +117,3 @@ inline void Image::derivativeAt(float x, float y, float *dx, float *dy) const
     *dx = _pixel[windex(ix,iy+1)].g - _pixel[index(ix,iy)].g;
     *dy = _pixel[windex(ix+1,iy)].g - _pixel[index(ix,iy)].g;
 }
-
-#endif /* end of include guard: IMAGE_H_IOLFQARK */

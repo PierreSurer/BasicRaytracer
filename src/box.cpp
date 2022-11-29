@@ -1,10 +1,22 @@
+//
+//  Framework for a raytracer
+//  File: box.cpp
+//
+//  Created for the Computer Science course "Introduction Computer Graphics"
+//  taught at the University of Groningen by Tobias Isenberg.
+//
+//  Author: Maarten Everts
+//
+//  This framework is inspired by and uses code of the raytracer framework of 
+//  Bert Freudenberg that can be found at
+//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
+//
+
 #include "box.h"
 #include <iostream>
 #include <math.h>
 
-/************************** Sphere **********************************/
-
-Hit Box::intersect(const Ray &ray)
+Hit Box::intersect(const Ray &ray) const
 {
     Vector tMin = ((position - size) - ray.O) / ray.D;
     Vector tMax = ((position + size) - ray.O) / ray.D;

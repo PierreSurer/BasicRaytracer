@@ -19,7 +19,7 @@
 /*
 * Create a picture. Answer false if failed.
 */
-bool Image::set_extent(int width, int height)
+bool Image::setSize(int width, int height)
 {
     _width = width;
     _height = height;
@@ -29,7 +29,7 @@ bool Image::set_extent(int width, int height)
 }
 
 
-void Image::write_png(const char* filename) const
+void Image::writePng(const char* filename) const
 {
     std::vector<unsigned char> image;
     image.resize(_width * _height * 4);
@@ -50,7 +50,7 @@ void Image::write_png(const char* filename) const
 }
 
 
-void Image::read_png(const char* filename)
+void Image::readPng(const char* filename)
 {
     std::vector<unsigned char> buffer, image;
     //load the image file with given filename
@@ -69,7 +69,7 @@ void Image::read_png(const char* filename)
     }
     int w = decoder.getWidth();
     int h = decoder.getHeight();
-    set_extent(w,h);
+    setSize(w, h);
 
     // now convert the image data
     std::vector<unsigned char>::iterator imageIterator = image.begin();

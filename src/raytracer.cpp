@@ -129,7 +129,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
             parser.GetNextDocument(doc);
 
             // Read scene configuration options
-            scene->setEye(parseTriple(doc["Eye"]));
+            scene->eye = parseTriple(doc["Eye"]);
 
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
@@ -141,7 +141,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
                 Object *obj = parseObject(*it);
                 // Only add object if it is recognized
                 if (obj) {
-                    scene->addObject(obj);
+                    scene->objects.push_back(obj);
                 } else {
                     cerr << "Warning: found object of unknown type, ignored." << endl;
                 }
@@ -154,7 +154,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
                 return false;
             }
             for(YAML::Iterator it=sceneLights.begin();it!=sceneLights.end();++it) {
-                scene->addLight(parseLight(*it));
+                scene->lights.push_back(parseLight(*it));
             }
         }
         if (parser) {
@@ -165,7 +165,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
         return false;
     }
 
-    cout << "YAML parsing results: " << scene->getNumObjects() << " objects read." << endl;
+    cout << "YAML parsing results: " << scene->objects.size() << " objects read." << endl;
     return true;
 }
 
@@ -175,6 +175,6 @@ void Raytracer::renderToFile(const std::string& outputFilename)
     cout << "Tracing..." << endl;
     scene->render(img);
     cout << "Writing image to " << outputFilename << "..." << endl;
-    img.write_png(outputFilename.c_str());
+    img.writePng(outputFilename.c_str());
     cout << "Done." << endl;
 }

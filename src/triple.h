@@ -12,8 +12,7 @@
 //  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
 //
 
-#ifndef TRIPLE_H_SEVQHPTA
-#define TRIPLE_H_SEVQHPTA
+#pragma once
 
 #include <math.h>
 #include <iostream>
@@ -224,5 +223,3 @@ public:
 typedef Triple Color;
 typedef Triple Point;
 typedef Triple Vector;
-
-#endif /* end of include guard: TRIPLE_H_SEVQHPTA */

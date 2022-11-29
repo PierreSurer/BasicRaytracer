@@ -97,18 +97,3 @@ void Scene::render(Image &img)
         }
     }
 }
-
-void Scene::addObject(Object *o)
-{
-    objects.push_back(o);
-}
-
-void Scene::addLight(Light *l)
-{
-    lights.push_back(l);
-}
-
-void Scene::setEye(Triple e)
-{
-    eye = e;
-}

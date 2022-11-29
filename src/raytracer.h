@@ -12,8 +12,7 @@
 //  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
 //
 
-#ifndef RAYTRACER_H_6GQO67WK
-#define RAYTRACER_H_6GQO67WK
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -30,12 +29,11 @@ private:
     Light* parseLight(const YAML::Node& node);
 
 public:
-    Raytracer() { }
+    Raytracer()
+    { }
 
     Scene *scene;
 
     bool readScene(const std::string& inputFilename);
     void renderToFile(const std::string& outputFilename);
 };
-
-#endif /* end of include guard: RAYTRACER_H_6GQO67WK */
