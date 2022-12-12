@@ -5,18 +5,18 @@
 Color Scene::traceColor(const Ray &ray)
 {
     // Find hit object and distance
-    Hit min_hit(std::numeric_limits<double>::infinity(), glm::dvec3());
+    Hit min_hit = Hit::NO_HIT();
     Object *obj = nullptr;
-    for (unsigned int i = 0; i < objects.size(); ++i) {
-        Hit hit(objects[i]->intersect(ray));
+    for (const auto &o : objects) {
+        Hit hit = o->intersect(ray);
         if (hit.t < min_hit.t) {
             min_hit = hit;
-            obj = objects[i].get();
+            obj = o.get();
         }
     }
 
     // No hit? Return background color.
-    if (!obj) return Color(0.0, 0.0, 0.0);
+    if (min_hit.no_hit) return Color(0.0, 0.0, 0.0);
 
     Material *material = obj->material.get();            //the hit objects material
     glm::dvec3 hit = ray.at(min_hit.t);                 //the hit point
@@ -55,17 +55,14 @@ Color Scene::traceDepth(const Ray &ray, double near, double far)
 
     // Find hit object and distance
     Hit min_hit(far - near, glm::dvec3());
-    Object *obj = nullptr;
-    for (unsigned int i = 0; i < objects.size(); ++i) {
-        Hit hit(objects[i]->intersect(newRay));
+    for (const auto &obj : objects) {
+        Hit hit = obj->intersect(ray);
         if (hit.t < min_hit.t) {
             min_hit = hit;
-            obj = objects[i].get();
         }
     }
 
     // No hit? Return background color.
-    if (!obj) return Color(0.0, 0.0, 0.0);
     double z = 1.0 - min_hit.t / (far - near); // Linearized depth
     Color color = Color(1.0) * z;
 
@@ -75,18 +72,16 @@ Color Scene::traceDepth(const Ray &ray, double near, double far)
 Color Scene::traceNormals(const Ray &ray)
 {
     // Find hit object and distance
-    Hit min_hit(std::numeric_limits<double>::infinity(), glm::dvec3());
-    Object *obj = nullptr;
-    for (unsigned int i = 0; i < objects.size(); ++i) {
-        Hit hit(objects[i]->intersect(ray));
+    Hit min_hit = Hit::NO_HIT();
+    for (const auto &obj : objects) {
+        Hit hit = obj->intersect(ray);
         if (hit.t < min_hit.t) {
             min_hit = hit;
-            obj = objects[i].get();
         }
     }
 
     // No hit? Return background color.
-    if (!obj) return Color(0.0, 0.0, 0.0);
+    if (min_hit.no_hit) return Color(0.0, 0.0, 0.0);
 
     glm::dvec3 N = min_hit.N;                          //the normal at hit point
 
@@ -103,7 +98,9 @@ void Scene::render(Image &img)
         for (int x = 0; x < w; x++) {
             glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
             Ray ray(eye, normalize(pixel - eye));
-            Color col = traceNormals(ray);
+            // Color col = traceDepth(ray, 0, 1000);
+            // Color col = traceNormals(ray);
+            Color col = traceColor(ray);
             col = clamp(col, 0.0, 1.0);
             img(x, y) = col;
         }

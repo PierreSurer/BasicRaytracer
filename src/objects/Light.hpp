@@ -45,7 +45,7 @@ public:
     { }
 
     static const Hit NO_HIT() { 
-        constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
+        constexpr double NaN = std::numeric_limits<double>::infinity();
         static Hit no_hit(NaN, glm::dvec3(NaN), true);
         return no_hit;
     }

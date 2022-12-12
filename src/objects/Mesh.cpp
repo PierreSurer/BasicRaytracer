@@ -19,14 +19,15 @@ using namespace glm;
 
 Hit Mesh::intersect(const Ray& ray) const
 {
-    for (const Triangle& face : faces) {
+    Hit min_hit = Hit::NO_HIT();
+    for (const auto &face : faces) {
         Hit hit = face.intersect(ray);
-        if (!hit.no_hit) {
-            return hit;
+        if (hit.t < min_hit.t) {
+            min_hit = hit;
         }
     }
 
-    return Hit::NO_HIT();
+    return min_hit;
 }
 
 Hit Mesh::Triangle::intersect(const Ray &ray) const
