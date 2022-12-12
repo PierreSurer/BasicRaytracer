@@ -104,8 +104,8 @@ void Scene::render(Image &img)
             glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
             Ray ray(eye, normalize(pixel - eye));
             // Color col = traceDepth(ray, view_dir, 500, 1000);
-            // Color col = traceNormals(ray);
-            Color col = traceColor(ray);
+            Color col = traceNormals(ray);
+            // Color col = traceColor(ray);
             col = clamp(col, 0.0, 1.0);
             img(x, y) = col;
         }

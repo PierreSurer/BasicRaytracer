@@ -1,5 +1,6 @@
 #include "Raytracer.hpp"
 #include "objects/Box.hpp"
+#include "objects/Cylinder.hpp"
 #include "objects/Mesh.hpp"
 #include "objects/Object.hpp"
 #include "objects/Sphere.hpp"
@@ -59,11 +60,21 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
         returnObject = std::make_unique<Sphere>(pos, r);
     }
     else if (objectType == "box") {
-        glm::dvec3 pos;
+        glm::dvec3 pos, rot;
         double size;
         node["position"] >> pos;
+        node["rotation"] >> rot;
         node["size"] >> size;
-        returnObject = std::make_unique<Box>(pos, size);
+        returnObject = std::make_unique<Box>(pos, radians(rot), size);
+    }
+    else if (objectType == "cylinder") {
+        glm::dvec3 pos, rot;
+        double height, radius;
+        node["position"] >> pos;
+        node["rotation"] >> rot;
+        node["height"] >> height;
+        node["radius"] >> radius;
+        returnObject = std::make_unique<Cylinder>(pos, radians(rot), height, radius);
     }
     else if (objectType == "triangle") {
         glm::dvec3 p1;
