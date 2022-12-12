@@ -49,12 +49,12 @@ Color Scene::traceColor(const Ray &ray)
     return color;
 }
 
-Color Scene::traceDepth(const Ray &ray, double near, double far)
+Color Scene::traceDepth(const Ray &ray, const glm::dvec3 &axis, double near, double far)
 {
     Ray newRay(ray.at(near), ray.D);
 
     // Find hit object and distance
-    Hit min_hit(far - near, glm::dvec3());
+    Hit min_hit = Hit::NO_HIT();
     for (const auto &obj : objects) {
         Hit hit = obj->intersect(ray);
         if (hit.t < min_hit.t) {
@@ -62,9 +62,11 @@ Color Scene::traceDepth(const Ray &ray, double near, double far)
         }
     }
 
-    // No hit? Return background color.
-    double z = 1.0 - min_hit.t / (far - near); // Linearized depth
-    Color color = Color(1.0) * z;
+    // compute distance and project it on the optical axis
+    double z = (min_hit.t - near) / (far - near); // Linearized distance
+    z = z * glm::dot(axis, ray.D);
+    z = glm::clamp(z, 0.0, 1.0);
+    Color color = Color(1.0) * (1.0 - z);
 
     return color;
 }
@@ -93,12 +95,15 @@ void Scene::render(Image &img)
     int w = img.width();
     int h = img.height();
 
+    // direction we are looking at to compute depth.
+    const glm::dvec3 view_dir(0.0, 0.0, -1.0);
+
     #pragma omp parallel for
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
             glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
             Ray ray(eye, normalize(pixel - eye));
-            // Color col = traceDepth(ray, 0, 1000);
+            // Color col = traceDepth(ray, view_dir, 500, 1000);
             // Color col = traceNormals(ray);
             Color col = traceColor(ray);
             col = clamp(col, 0.0, 1.0);

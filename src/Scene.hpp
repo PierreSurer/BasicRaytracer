@@ -12,7 +12,7 @@ public:
     std::vector<std::unique_ptr<Light>> lights;
     glm::dvec3 eye;
     Color traceColor(const Ray &ray);
-    Color traceDepth(const Ray &ray, double near, double far);
+    Color traceDepth(const Ray &ray, const glm::dvec3 &axis, double near, double far);
     Color traceNormals(const Ray &ray);
     void render(Image &img);
 };
