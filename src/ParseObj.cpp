@@ -32,8 +32,8 @@ Mesh parseObj(const std::string &filename)
     if (c == "v") {
       double x, y, z;
       iss >> x >> y >> z;
-      x = x * 100 + 200;
-      y = y * 100 + 200;
+      x = x * 100;
+      y = y * 100;
       z = z * 100 + 200;
       verts.emplace_back(x, y, z);
     }

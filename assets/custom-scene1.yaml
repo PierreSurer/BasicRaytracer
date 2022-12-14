@@ -12,19 +12,20 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-Eye: [200, 200, 1000]
+Eye: [0, 0, 800]
+Fov: 70
 
 Lights:
 - position: [0,0,1500]
   color: [1.0,1.0,1.0]
-- position: [600,600,1200]
+- position: [400,400,1200]
   color: [1.0,1.0,1.0]
   
 
 Objects:
 
 - type: mesh
-  file: "suzanne3.obj"
+  file: "suzanne.obj"
   material: # cyan
     color: [0.0,1.0,1.0]
     ka: 0.2
@@ -33,7 +34,7 @@ Objects:
     n: 64
 
 - type: cylinder
-  position: [90,320,100]
+  position: [-110,120,100]
   rotation: [50, 40, 60]
   height: 20
   radius: 40
@@ -45,9 +46,9 @@ Objects:
     n: 64
 
 - type: triangle
-  p1: [200,200,50]
-  p2: [400,200,50]
-  p3: [200,400,50]
+  p1: [0,0,50]
+  p2: [200,0,50]
+  p3: [0,200,50]
   material: # blue
     color: [0.0,0.0,1.0]
     ka: 0.2
@@ -55,7 +56,7 @@ Objects:
     ks: 0.5
     n: 64
 - type: box
-  position: [90,90,100]
+  position: [-110,-110,100]
   rotation: [45,12,4]
   size: 50
   material: # red
@@ -65,7 +66,7 @@ Objects:
     ks: 0.5
     n: 64
 - type: sphere
-  position: [300,100,150]
+  position: [100,-100,150]
   radius: 50
   material: # green
     color: [0.0,1.0,0.0]

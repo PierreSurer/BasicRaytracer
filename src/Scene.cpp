@@ -38,7 +38,7 @@ Color Scene::traceColor(const Ray &ray, double reflectionFactor)
         bool inShadow = false;
         for (const auto &o : objects) {
             Hit shadowHit = o->intersect(shadowRay);
-            if(shadowHit.t > 0 && shadowHit.t <= length(lightVector) + 0.001) {
+            if(shadowHit.t >= 0.0 && shadowHit.t <= length(lightVector) + 0.001) {
                 inShadow = true;
                 break;
             }
@@ -130,7 +130,7 @@ void Scene::render(Image &img)
         for (int x = 0; x < w; x++) {
             
             double dx = x - w / 2.0;
-            double dy = y - h / 2.0;
+            double dy = (h - y - 1) - h / 2.0;
             dvec3 dir = normalize(cam_z * dz + cam_x * dx + cam_y * dy);
             
             Ray ray(eye, dir);
