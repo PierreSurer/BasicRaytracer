@@ -2,14 +2,25 @@
 #include "Material.hpp"
 #include <algorithm>
 
-Color Scene::traceColor(const Ray &ray)
+namespace glm {
+  template<typename T, length_t N>
+  std::ostream& operator<<(std::ostream& os, vec<N, T> const& v) {
+    // os << std::setprecision(5);
+    os << "vec" << N << "(";
+    for(length_t i = 0; i < N-1; i++)
+      os << v[i] << ", ";
+    os << v[N-1] << ")";
+    return os;
+  }
+}
+Color Scene::traceColor(const Ray &ray, double reflectionFactor)
 {
     // Find hit object and distance
     Hit min_hit = Hit::NO_HIT();
     Object *obj = nullptr;
     for (const auto &o : objects) {
         Hit hit = o->intersect(ray);
-        if (hit.t < min_hit.t) {
+        if (hit.t >=0.0 && hit.t < min_hit.t) {
             min_hit = hit;
             obj = o.get();
         }
@@ -30,20 +41,39 @@ Color Scene::traceColor(const Ray &ray)
     Color color = material->color * material->ka * totalIntensity;
     for(auto const& light : lights) {
         glm::dvec3 lightVector = light->position - hit; // Not normalized as we need magnitude
+        Ray shadowRay(hit + 0.001 * normalize(lightVector), normalize(lightVector));
 
-        // Diffuse color calculation
-        Color diffuseColor = material->color * material->kd;
-        diffuseColor *= std::clamp(dot(N, normalize(lightVector)), 0.0, 1.0);
-        diffuseColor *= light->diffusePower/ (length(lightVector) * length(lightVector));
-        color += diffuseColor;
+        bool inShadow = false;
+        for (const auto &o : objects) {
+            Hit shadowHit = o->intersect(shadowRay);
+            if(shadowHit.t > 0 && shadowHit.t <= length(lightVector) + 0.001) {
+                inShadow = true;
+                break;
+            }
+            
+        }
+        if(!inShadow) {
+            // Diffuse color calculation
+            Color diffuseColor = material->color * material->kd;
+            diffuseColor *= std::clamp(dot(N, normalize(lightVector)), 0.0, 1.0);
+            diffuseColor *= light->diffusePower/ (length(lightVector) * length(lightVector));
+            color += diffuseColor;
 
-        // Specular color calculation using blinn-phong model
-        Color specularColor = Color(1.0) * material->ks;
-        glm::dvec3 H = normalize(normalize(lightVector) + V);
-        double NdotH = std::clamp(dot(N, H), 0.0, 1.0);
-        specularColor *= pow(NdotH, 2.0 * material->n);
-        specularColor *= light->specularPower / (length(lightVector) * length(lightVector));
-        color += specularColor;
+            // Specular color calculation using blinn-phong model
+            Color specularColor = Color(1.0) * material->ks;
+            glm::dvec3 H = normalize(normalize(lightVector) + V);
+            double NdotH = std::clamp(dot(N, H), 0.0, 1.0);
+            specularColor *= pow(NdotH, 2.0 * material->n);
+            specularColor *= light->specularPower / (length(lightVector) * length(lightVector));
+            color += specularColor;
+        }
+        if(material->ks * reflectionFactor > 0.01) { //reflection
+            glm::dvec3 reflectedVector = ray.D - 2 * dot(N, ray.D) * N;
+            Ray reflectionRay(hit + 0.001 * normalize(reflectedVector), normalize(reflectedVector));
+            color = traceColor(reflectionRay, material->ks * reflectionFactor) * material->ks + color * (1.0 - material->ks);
+
+        }
+        
     }
 
     return color;
@@ -104,8 +134,8 @@ void Scene::render(Image &img)
             glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
             Ray ray(eye, normalize(pixel - eye));
             // Color col = traceDepth(ray, view_dir, 500, 1000);
-            Color col = traceNormals(ray);
-            // Color col = traceColor(ray);
+            // Color col = traceNormals(ray);
+            Color col = traceColor(ray, 1.0);
             col = clamp(col, 0.0, 1.0);
             img(x, y) = col;
         }
