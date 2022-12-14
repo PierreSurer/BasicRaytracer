@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
 #include "Light.hpp"
-#include <glm/glm.hpp>
+
+#include <memory>
 
 class Material;
 

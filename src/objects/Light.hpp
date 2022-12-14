@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <limits>
-
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 class Light
 {

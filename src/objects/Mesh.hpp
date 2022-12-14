@@ -15,7 +15,7 @@
 #pragma once
 
 #include "Object.hpp"
-#include <glm/glm.hpp>
+#include <glm.hpp>
 #include <vector>
 
 class Mesh : public Object

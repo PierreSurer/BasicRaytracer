@@ -12,7 +12,8 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-Eye: [200, 200, 1000]
+Eye: [0, 0, 1000]
+Fov: 70
 
 Lights:
 - position: [0,0,1500]
@@ -32,7 +33,7 @@ Objects:
     ks: 0.5
     n: 64
 - type: sphere
-  position: [210,270,300]
+  position: [10,70,300]
   radius: 50
   material: # green
     color: [0.0,1.0,0.0]
@@ -41,7 +42,7 @@ Objects:
     ks: 0.5
     n: 8
 - type: sphere
-  position: [290,170,150]
+  position: [90,-30,150]
   radius: 50
   material: # red
     color: [1.0,0.0,0.0]
@@ -50,7 +51,7 @@ Objects:
     ks: 0.8
     n: 32
 - type: sphere
-  position: [140,220,400]
+  position: [-60,20,400]
   radius: 50
   material: # yellow
     color: [1.0,0.8,0.0]
@@ -59,7 +60,7 @@ Objects:
     ks: 0.0
     n: 1
 - type: sphere
-  position: [110,130,200]
+  position: [-90,-70,200]
   radius: 50
   material: # orange
     color: [1.0,0.5,0.0]

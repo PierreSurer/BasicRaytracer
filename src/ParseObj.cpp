@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 using namespace glm;
 

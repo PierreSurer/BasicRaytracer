@@ -1,6 +1,5 @@
 #pragma once
-
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 typedef glm::dvec3 Color;
 class Material

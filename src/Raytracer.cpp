@@ -43,7 +43,7 @@ std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
     node["kd"] >> m->kd;
     node["ks"] >> m->ks;
     node["n"] >> m->n;
-    return std::move(m);
+    return m;
 }
 
 std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
@@ -94,10 +94,10 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
 
     if (returnObject) {
         // read the material and attach to object
-        returnObject->material = std::move(parseMaterial(node["material"]));
+        returnObject->material = parseMaterial(node["material"]);
     }
 
-    return std::move(returnObject);
+    return returnObject;
 }
 
 std::unique_ptr<Light> Raytracer::parseLight(const YAML::Node& node)
@@ -136,7 +136,8 @@ bool Raytracer::readScene(const std::string& inputFilename)
 
             // Read scene configuration options
             scene->eye = parseVector(doc["Eye"]);
-
+            doc["Fov"] >> scene->fov;
+            
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
             if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {

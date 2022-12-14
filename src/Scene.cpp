@@ -1,18 +1,10 @@
 #include "Scene.hpp"
 #include "Material.hpp"
 #include <algorithm>
+#include <glm.hpp>
 
-namespace glm {
-  template<typename T, length_t N>
-  std::ostream& operator<<(std::ostream& os, vec<N, T> const& v) {
-    // os << std::setprecision(5);
-    os << "vec" << N << "(";
-    for(length_t i = 0; i < N-1; i++)
-      os << v[i] << ", ";
-    os << v[N-1] << ")";
-    return os;
-  }
-}
+using namespace glm;
+
 Color Scene::traceColor(const Ray &ray, double reflectionFactor)
 {
     // Find hit object and distance
@@ -125,14 +117,23 @@ void Scene::render(Image &img)
     int w = img.width();
     int h = img.height();
 
-    // direction we are looking at to compute depth.
-    const glm::dvec3 view_dir(0.0, 0.0, -1.0);
+    // build a set of camera axis
+    dvec3 up = dvec3(0.0, 1.0, 0.0);
+    dvec3 cam_z = -normalize(dvec3(0.0) - eye); // looking at the origin
+    dvec3 cam_x = cross(up, cam_z);
+    dvec3 cam_y = cross(cam_z, cam_x);
+
+    double dz = h / (2.0 * sin(fov / 2.0));
 
     #pragma omp parallel for
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
-            glm::dvec3 pixel(x + 0.5, h - 1 - y + 0.5, 0);
-            Ray ray(eye, normalize(pixel - eye));
+            
+            double dx = x - w / 2.0;
+            double dy = y - h / 2.0;
+            dvec3 dir = normalize(cam_z * dz + cam_x * dx + cam_y * dy);
+            
+            Ray ray(eye, dir);
             // Color col = traceDepth(ray, view_dir, 500, 1000);
             // Color col = traceNormals(ray);
             Color col = traceColor(ray, 1.0);
