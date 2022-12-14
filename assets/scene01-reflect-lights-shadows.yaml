@@ -12,7 +12,11 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-Eye: [200,200,1000]  
+Camera:
+  eye: [200, 200, 1000]
+  target: [200, 200, 0]
+  up: [0, 1, 0]
+  fov: 22.619864948 # atan(200 / 1000)
 
 Shadows: true
 MaxRecursionDepth: 2

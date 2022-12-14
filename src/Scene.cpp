@@ -26,8 +26,8 @@ Color Scene::traceColor(const Ray &ray, double reflectionFactor)
     if (hit.no_hit)
         return Color(0.0, 0.0, 0.0);
 
-    Material *material = obj->material.get();       //the hit objects material
-    dvec3 hitPoint = ray.at(hit.t);                 //the hit point
+    auto const& mat = obj->material;       //the hit objects material
+    dvec3 hitPoint = ray.at(hit.t);            //the hit point
     
     double totalIntensity = 0.0;
     for (auto const& light : lights)
@@ -36,8 +36,7 @@ Color Scene::traceColor(const Ray &ray, double reflectionFactor)
     Color color(0.0, 0.0, 0.0);
 
     // ambient color, only if direct ray
-    if (reflectionFactor == 1.0)
-        color += material->color * material->ka * totalIntensity;
+    color += mat->color * mat->ka * totalIntensity;
 
     for (auto const& light : lights) {
         dvec3 lightVector = light->position - hitPoint; // Not normalized as we need magnitude
@@ -55,27 +54,25 @@ Color Scene::traceColor(const Ray &ray, double reflectionFactor)
 
         if (!inShadow) {
             // Diffuse color calculation
-            if (reflectionFactor == 1.0) {
-                Color diffuseColor = material->color * material->kd;
-                diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
-                diffuseColor *= light->diffusePower / length2(lightVector);
-                color += diffuseColor;
-            }
+            Color diffuseColor = mat->color * mat->kd;
+            diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
+            diffuseColor *= light->diffusePower / length2(lightVector);
+            color += diffuseColor;
 
             // Specular color calculation using blinn-phong model
-            Color specularColor = Color(1.0) * material->ks;
+            Color specularColor = Color(1.0) * mat->ks;
             dvec3 H = normalize(lightDir - ray.D);
             double NdotH = clamp(dot(hit.N, H), 0.0, 1.0);
-            specularColor *= pow(NdotH, 2.0 * material->n);
+            specularColor *= pow(NdotH, 2.0 * mat->n);
             specularColor *= light->specularPower / length2(lightVector);
             color += specularColor;
         }
 
         // reflection
-        if (material->ks * reflectionFactor > 0.01) { // reflection
-            dvec3 reflectedDir = ray.D - 2 * dot(hit.N, ray.D) * hit.N;
+        if (mat->ks * reflectionFactor > 0.01) { // reflection
+            dvec3 reflectedDir = reflect(ray.D, hit.N);
             Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-            color += traceColor(reflectionRay, material->ks * reflectionFactor) * material->ks;
+            color += traceColor(reflectionRay, mat->ks * reflectionFactor) * mat->ks;
         }
     }
 
@@ -134,7 +131,7 @@ void Scene::render(Image &img)
     dvec3 cam_y = cross(cam_z, cam_x);
 
     // distance of the focal plane
-    double dz = (h - 1) / (2.0 * sin(fov / 2.0));
+    double dz = (h - 1) / (2.0 * tan(radians(fov) / 2.0));
 
     #pragma omp parallel for
     for (int y = 0; y < h; y++) {
@@ -142,7 +139,7 @@ void Scene::render(Image &img)
             
             double dx = x - w / 2.0 + 0.5;
             double dy = (h - y - 1) - h / 2.0 + 0.5;
-            dvec3 dir = normalize(cam_z * dz + cam_x * dx + cam_y * dy);
+            dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
             
             Ray ray(eye, dir);
             // Color col = traceDepth(ray, view_dir, 500, 1000);

@@ -24,27 +24,8 @@ Lights:
 
 Objects:
 
-- type: sphere
-  position: [0,300,0]
-  radius: 101
-  material: # green
-    color: [0.0,1.0,0.0]
-    ka: 0.2
-    kd: 0.0
-    ks: 1.0
-    n: 64
-# - type: sphere
-#   position: [200,0,0]
-#   radius: 50
-#   material: # green
-#     color: [1.0,0.0,0.0]
-#     ka: 0.2
-#     kd: 0.3
-#     ks: 0.7
-#     n: 8
-
 - type: mesh
-  file: "test.obj"
+  file: "suzanne3.obj"
   material: # cyan
     color: [0.0,1.0,1.0]
     ka: 0.2
@@ -52,17 +33,17 @@ Objects:
     ks: 0.7
     n: 64
 
-# - type: cylinder
-#   position: [-110,120,100]
-#   rotation: [50, 40, 60]
-#   height: 20
-#   radius: 40
-#   material: # yellow
-#     color: [1.0,1.0,0.0]
-#     ka: 0.2
-#     kd: 0.7
-#     ks: 0.5
-#     n: 64
+- type: cylinder
+  position: [-110,120,100]
+  rotation: [50, 40, 60]
+  height: 20
+  radius: 40
+  material: # yellow
+    color: [1.0,1.0,0.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.5
+    n: 64
 
 # - type: triangle
 #   p1: [0,0,50]
@@ -74,49 +55,54 @@ Objects:
 #     kd: 0.7
 #     ks: 0.5
 #     n: 64
-# - type: box
-#   position: [-110,-110,100]
-#   rotation: [45,12,4]
-#   size: 50
-#   material: # red
-#     color: [1.0,0.0,0.0]
-#     ka: 0.2
-#     kd: 0.7
-#     ks: 0.5
-#     n: 64
-# - type: sphere
-#   position: [100,-100,150]
-#   radius: 50
-#   material: # green
-#     color: [0.0,1.0,0.0]
-#     ka: 0.2
-#     kd: 0.3
-#     ks: 0.5
-#     n: 8
-# - type: sphere
-#   position: [290,170,150]
-#   radius: 50
-#   material: # red
-#     color: [1.0,0.0,0.0]
-#     ka: 0.2
-#     kd: 0.7
-#     ks: 0.8
-#     n: 32
-# - type: sphere
-#   position: [140,220,400]
-#   radius: 50
-#   material: # yellow
-#     color: [1.0,0.8,0.0]
-#     ka: 0.2
-#     kd: 0.8
-#     ks: 0.0
-#     n: 1
-# - type: sphere
-#   position: [110,130,200]
-#   radius: 50
-#   material: # orange
-#     color: [1.0,0.5,0.0]
-#     ka: 0.2
-#     kd: 0.8
-#     ks: 0.5
-#     n: 32
+
+- type: box
+  position: [-110,-110,100]
+  rotation: [45,12,4]
+  size: 50
+  material: # red
+    color: [1.0,0.0,0.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.5
+    n: 64
+
+- type: sphere
+  position: [100,-100,150]
+  radius: 50
+  material: # green
+    color: [0.0,1.0,0.0]
+    ka: 0.2
+    kd: 0.3
+    ks: 0.5
+    n: 8
+
+- type: sphere
+  position: [290,170,150]
+  radius: 50
+  material: # red
+    color: [1.0,0.0,0.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.8
+    n: 32
+
+- type: sphere
+  position: [140,220,400]
+  radius: 50
+  material: # yellow
+    color: [1.0,0.8,0.0]
+    ka: 0.2
+    kd: 0.8
+    ks: 0.0
+    n: 1
+
+- type: sphere
+  position: [110,130,200]
+  radius: 50
+  material: # orange
+    color: [1.0,0.5,0.0]
+    ka: 0.2
+    kd: 0.8
+    ks: 0.5
+    n: 32
