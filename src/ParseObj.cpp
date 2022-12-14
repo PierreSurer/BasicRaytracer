@@ -34,7 +34,7 @@ Mesh parseObj(const std::string &filename)
       iss >> x >> y >> z;
       x = x * 100;
       y = y * 100;
-      z = z * 100 + 200;
+      z = z * 100;
       verts.emplace_back(x, y, z);
     }
     if (c == "vn") {

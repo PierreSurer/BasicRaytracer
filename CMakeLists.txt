@@ -38,7 +38,6 @@ set(INCLUDES
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/glm
 )
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/deps/glfw-3.3.6")
 
 # Define the executable
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
@@ -52,7 +51,9 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 #[===[
+add_subdirectory("${PROJECT_SOURCE_DIR}/deps/glfw-3.3.6")
 target_link_libraries(${PROJECT_NAME} glfw)
+
 find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIR})

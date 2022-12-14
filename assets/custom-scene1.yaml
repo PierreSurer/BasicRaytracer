@@ -12,68 +12,87 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-Eye: [0, 0, 800]
-Fov: 70
+Camera:
+  eye: [0, 0, 500]
+  target: [0, 0, 0]
+  up: [0, 1, 0]
+  fov: 70
 
 Lights:
-- position: [0,0,1500]
+- position: [1000,0,1000]
   color: [1.0,1.0,1.0]
-- position: [400,400,1200]
-  color: [1.0,1.0,1.0]
-  
 
 Objects:
 
-- type: mesh
-  file: "suzanne.obj"
-  material: # cyan
-    color: [0.0,1.0,1.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
-
-- type: cylinder
-  position: [-110,120,100]
-  rotation: [50, 40, 60]
-  height: 20
-  radius: 40
-  material: # yellow
-    color: [1.0,1.0,0.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
-
-- type: triangle
-  p1: [0,0,50]
-  p2: [200,0,50]
-  p3: [0,200,50]
-  material: # blue
-    color: [0.0,0.0,1.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
-- type: box
-  position: [-110,-110,100]
-  rotation: [45,12,4]
-  size: 50
-  material: # red
-    color: [1.0,0.0,0.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
 - type: sphere
-  position: [100,-100,150]
-  radius: 50
+  position: [0,300,0]
+  radius: 101
   material: # green
     color: [0.0,1.0,0.0]
     ka: 0.2
+    kd: 0.0
+    ks: 1.0
+    n: 64
+# - type: sphere
+#   position: [200,0,0]
+#   radius: 50
+#   material: # green
+#     color: [1.0,0.0,0.0]
+#     ka: 0.2
+#     kd: 0.3
+#     ks: 0.7
+#     n: 8
+
+- type: mesh
+  file: "test.obj"
+  material: # cyan
+    color: [0.0,1.0,1.0]
+    ka: 0.2
     kd: 0.3
-    ks: 0.5
-    n: 8
+    ks: 0.7
+    n: 64
+
+# - type: cylinder
+#   position: [-110,120,100]
+#   rotation: [50, 40, 60]
+#   height: 20
+#   radius: 40
+#   material: # yellow
+#     color: [1.0,1.0,0.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
+
+# - type: triangle
+#   p1: [0,0,50]
+#   p2: [200,0,50]
+#   p3: [0,200,50]
+#   material: # blue
+#     color: [0.0,0.0,1.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
+# - type: box
+#   position: [-110,-110,100]
+#   rotation: [45,12,4]
+#   size: 50
+#   material: # red
+#     color: [1.0,0.0,0.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
+# - type: sphere
+#   position: [100,-100,150]
+#   radius: 50
+#   material: # green
+#     color: [0.0,1.0,0.0]
+#     ka: 0.2
+#     kd: 0.3
+#     ks: 0.5
+#     n: 8
 # - type: sphere
 #   position: [290,170,150]
 #   radius: 50

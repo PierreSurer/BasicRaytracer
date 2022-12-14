@@ -24,8 +24,12 @@ Hit Cylinder::intersect(const Ray &ray) const
     if (abs(r) <= height) {
         glm::dvec3 pos = localOrigin + t * localDirection;
         glm::dvec3 N = normalize(glm::dvec3(pos.x, 0.0, pos.z));
-        return Hit(t, orientation * N);
-    } else {
+        if (t < 0.0)
+            return Hit::NO_HIT();
+        else
+            return Hit(t, orientation * N);
+    }
+    else {
         glm::dvec3 N = normalize(glm::dvec3(0.0, 1.0, 0.0));
         if(localOrigin.y < 0.0) N = -N;
         double proj = dot(localDirection, N);
@@ -36,11 +40,9 @@ Hit Cylinder::intersect(const Ray &ray) const
         // project the ray on the plane surface
         double t = dot(glm::dvec3(0.0, height * N.y, 0.0) - localOrigin, N) / proj;
         glm::dvec3 pos = localOrigin + t * localDirection;
-        if(pos.x * pos.x + pos.z * pos.z > radius * radius) 
+        if(t < 0.0 || pos.x * pos.x + pos.z * pos.z > radius * radius) 
             return Hit::NO_HIT();
         
         return Hit(t, orientation * N);
     }
-            
-
 }

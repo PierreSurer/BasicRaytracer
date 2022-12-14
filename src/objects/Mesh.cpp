@@ -46,9 +46,10 @@ Hit Mesh::Triangle::intersect(const Ray &ray) const
     // oriented edges of the triangle.
     // (oriented counter-clockwise from p1 to p2 to p3 to p1)
     if (
-        dot(N, cross((p2 - p1), (target - p1))) < 0 ||
-        dot(N, cross((p3 - p2), (target - p2))) < 0 ||
-        dot(N, cross((p1 - p3), (target - p3))) < 0
+        t < 0.0 ||
+        dot(N, cross((p2 - p1), (target - p1))) < 0.0 ||
+        dot(N, cross((p3 - p2), (target - p2))) < 0.0 ||
+        dot(N, cross((p1 - p3), (target - p3))) < 0.0
     ) {
         return Hit::NO_HIT();
     }
@@ -64,6 +65,9 @@ Hit Mesh::Triangle::intersect(const Ray &ray) const
     double c2 = a2 / area;
     double c3 = a3 / area;
     dvec3 norm = normalize(n1 * c1 + n2 * c2 + n3 * c3);
+
+    // uncomment this for flat shading
+    // norm = N;
 
     return Hit(t, norm);
 }

@@ -12,19 +12,20 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-Eye: [0, 0, 1000]
-Fov: 70
+Camera:
+  eye: [0, 0, 800]
+  target: [0, 0, 0]
+  up: [0, 1, 0]
+  fov: 70
+
 
 Lights:
 - position: [0,0,1500]
   color: [1.0,1.0,1.0]
-- position: [400,400,800]
-  color: [1.0,1.0,1.0]
 
 Objects:
-
 - type: sphere
-  position: [90,320,100]
+  position: [-110,120,100]
   radius: 50
   material: # blue
     color: [0.0,0.0,1.0]

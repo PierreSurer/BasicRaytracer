@@ -10,6 +10,9 @@ Hit Sphere::intersect(const Ray &ray) const
         return Hit::NO_HIT();
     }
     double t = dot(OC, ray.D) - sqrt(r * r - h * h);
+    if (t < 0.0) {
+        return Hit::NO_HIT();
+    }
 
     glm::dvec3 intersectionPoint = ray.at(t);
     glm::dvec3 N = normalize(intersectionPoint - position);

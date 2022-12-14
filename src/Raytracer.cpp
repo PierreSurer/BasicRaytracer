@@ -135,8 +135,11 @@ bool Raytracer::readScene(const std::string& inputFilename)
             parser.GetNextDocument(doc);
 
             // Read scene configuration options
-            scene->eye = parseVector(doc["Eye"]);
-            doc["Fov"] >> scene->fov;
+            const YAML::Node& cam = doc["Camera"];
+            scene->eye = parseVector(cam["eye"]);
+            scene->up = parseVector(cam["up"]);
+            scene->target = parseVector(cam["target"]);
+            cam["fov"] >> scene->fov;
             
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
@@ -178,7 +181,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
 
 void Raytracer::renderToFile(const std::string& outputFilename)
 {
-    Image img(400, 400);
+    Image img(800, 800);
     std::cout << "Tracing..." << std::endl;
     scene->render(img);
     std::cout << "Writing image to " << outputFilename << "..." << std::endl;
