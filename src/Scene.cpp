@@ -6,10 +6,10 @@
 
 using namespace glm;
 
-static const double EPS = 0.001;
+static const double EPS = 0.00001;
 
 
-Color Scene::traceColor(const Ray &ray, double reflectionFactor)
+Color Scene::traceColor(const Ray &ray, TraceState state)
 {
     // Find hit object and distance
     Hit hit = Hit::NO_HIT();
@@ -27,53 +27,61 @@ Color Scene::traceColor(const Ray &ray, double reflectionFactor)
         return Color(0.0, 0.0, 0.0);
 
     auto const& mat = obj->material;       //the hit objects material
-    dvec3 hitPoint = ray.at(hit.t);            //the hit point
+    dvec3 hitPoint = ray.at(hit.t);        //the hit point
     
-    double totalIntensity = 0.0;
-    for (auto const& light : lights)
-        totalIntensity += light->ambientPower;
-
     Color color(0.0, 0.0, 0.0);
-
-    // ambient color, only if direct ray
-    color += mat->color * mat->ka * totalIntensity;
+    color += mat->color * mat->ka;
 
     for (auto const& light : lights) {
+
         dvec3 lightVector = light->position - hitPoint; // Not normalized as we need magnitude
         dvec3 lightDir = normalize(lightVector);
-        Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
-
         bool inShadow = false;
-        for (const auto &o : objects) {
-            Hit shadowHit = o->intersect(shadowRay);
-            if(shadowHit.t <= length(lightVector)) {
-                inShadow = true;
-                break;
+
+        if (options.shadows) {
+            Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
+            for (const auto &o : objects) {
+                Hit shadowHit = o->intersect(shadowRay);
+                if(shadowHit.t <= length(lightVector)) {
+                    inShadow = true;
+                    break;
+                }
             }
         }
+        // ambient color calculation
+        // color += mat->color * mat->ka * light->ambientPower;
 
         if (!inShadow) {
             // Diffuse color calculation
-            Color diffuseColor = mat->color * mat->kd;
+            Color diffuseColor = light->color * mat->color * mat->kd;
             diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
-            diffuseColor *= light->diffusePower / length2(lightVector);
+            // diffuseColor *= light->diffusePower / length2(lightVector);
             color += diffuseColor;
 
             // Specular color calculation using blinn-phong model
-            Color specularColor = Color(1.0) * mat->ks;
+            Color specularColor = light->color * mat->ks;
+            // blinn
             dvec3 H = normalize(lightDir - ray.D);
             double NdotH = clamp(dot(hit.N, H), 0.0, 1.0);
-            specularColor *= pow(NdotH, 2.0 * mat->n);
-            specularColor *= light->specularPower / length2(lightVector);
+            specularColor *= pow(NdotH, 4.0 * mat->n);
+            // phong
+            // dvec3 R = reflect(-lightDir, hit.N);
+            // double NdotH = clamp(dot(-ray.D, R), 0.0, 1.0);
+            // specularColor *= pow(NdotH, mat->n);
+            // specularColor *= light->specularPower / length2(lightVector);
             color += specularColor;
         }
+    }
 
-        // reflection
-        if (mat->ks * reflectionFactor > 0.01) { // reflection
-            dvec3 reflectedDir = reflect(ray.D, hit.N);
-            Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-            color += traceColor(reflectionRay, mat->ks * reflectionFactor) * mat->ks;
-        }
+
+    // reflection
+    if (state.bounces < options.maxBounces && mat->ks * state.reflectionFactor > options.reflectionTheshold) { // reflection
+        TraceState recState = state;
+        recState.bounces++;
+        recState.reflectionFactor *= mat->ks;
+        dvec3 reflectedDir = reflect(ray.D, hit.N);
+        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
+        color += traceColor(reflectionRay, recState) * mat->ks;
     }
 
     return color;

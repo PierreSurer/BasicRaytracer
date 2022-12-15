@@ -140,6 +140,9 @@ bool Raytracer::readScene(const std::string& inputFilename)
             scene->up = parseVector(cam["up"]);
             scene->target = parseVector(cam["target"]);
             cam["fov"] >> scene->fov;
+            if (doc.FindValue("Shadows")) doc["Shadows"] >> scene->options.shadows;
+            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> scene->options.maxBounces;
+            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> scene->options.reflectionTheshold;
             
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
@@ -181,7 +184,7 @@ bool Raytracer::readScene(const std::string& inputFilename)
 
 void Raytracer::renderToFile(const std::string& outputFilename)
 {
-    Image img(800, 800);
+    Image img(400, 400);
     std::cout << "Tracing..." << std::endl;
     scene->render(img);
     std::cout << "Writing image to " << outputFilename << "..." << std::endl;
