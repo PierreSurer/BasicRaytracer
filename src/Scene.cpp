@@ -76,12 +76,11 @@ Color Scene::traceColor(const Ray &ray, TraceState state)
 
     // reflection
     if (state.bounces < options.maxBounces && mat->ks * state.reflectionFactor > options.reflectionTheshold) { // reflection
-        TraceState recState = state;
-        recState.bounces++;
-        recState.reflectionFactor *= mat->ks;
+        state.bounces++;
+        state.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hit.N);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-        color += traceColor(reflectionRay, recState) * mat->ks;
+        color += traceColor(reflectionRay, state) * mat->ks;
     }
 
     return color;
