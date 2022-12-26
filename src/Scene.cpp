@@ -73,14 +73,54 @@ Color Scene::traceColor(const Ray &ray, TraceState state)
         }
     }
 
-
+    Color reflectionColor;
     // reflection
     if (state.bounces < options.maxBounces && mat->ks * state.reflectionFactor > options.reflectionTheshold) { // reflection
         state.bounces++;
         state.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hit.N);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-        color += traceColor(reflectionRay, state) * mat->ks;
+        reflectionColor = traceColor(reflectionRay, state) * mat->ks;
+    }
+    
+    Color refractionColor = color;
+    if (state.bounces < options.maxBounces && mat->refraction > 1.0) {// refraction
+        dvec3 refractionDir = refract(ray.D, hit.N, mat->refraction);
+        if(refractionDir != dvec3(0.0)) { //refraction
+            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
+            Hit refractionHit = obj->intersect(refractionRay);
+            if(!refractionHit.no_hit) {
+                refractionDir = refract(refractionRay.D, -refractionHit.N, 1.0 / mat->refraction);
+                refractionRay = Ray(refractionRay.at(refractionHit.t) + EPS * refractionDir, refractionDir);
+            }
+            state.bounces++;
+            if(refractionDir != dvec3(0.0))
+                refractionColor = traceColor(refractionRay, state);
+        }
+
+        double kr = mat->refraction;
+        // fresnel
+        double cosi = dot(ray.D, hit.N); 
+        double etai = 1, etat = mat->refraction; 
+        if (cosi > 0) { std::swap(etai, etat); } 
+        // Compute sini using Snell's law
+        double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi)); 
+        // Total internal reflection
+        if (sint >= 1.0) { 
+            kr = 1.0; 
+        } 
+        else { 
+            double cost = sqrt(std::max(0.0, 1 - sint * sint)); 
+            cosi = abs(cosi); 
+            double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost)); 
+            double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost)); 
+            kr = (Rs * Rs + Rp * Rp) / 2.0; 
+        }
+
+        color += reflectionColor * kr + refractionColor * (1.0 - kr);
+
+    } else {
+        color += reflectionColor;
     }
 
     return color;

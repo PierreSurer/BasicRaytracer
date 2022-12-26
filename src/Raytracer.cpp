@@ -43,6 +43,8 @@ std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
     node["kd"] >> m->kd;
     node["ks"] >> m->ks;
     node["n"] >> m->n;
+    node["ior"] >> m->refraction;
+    m->refraction = std::max(m->refraction, 1.0);
     return m;
 }
 

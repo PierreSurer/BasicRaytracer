@@ -12,7 +12,12 @@ Hit Sphere::intersect(const Ray &ray) const
     if (h_2 > r_2) {
         return Hit::NO_HIT();
     }
-    double t = dot(OC, ray.D) - sqrt(r_2 - h_2);
+    double t;
+    if(length2(OC) >= r_2)
+        t = dot(OC, ray.D) - sqrt(r_2 - h_2);
+    else
+        t = dot(OC, ray.D) + sqrt(r_2 - h_2);
+    
     if (t < 0.0) {
         return Hit::NO_HIT();
     }

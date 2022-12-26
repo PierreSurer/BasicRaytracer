@@ -33,6 +33,7 @@ Objects:
     kd: 0.7
     ks: 0.5
     n: 64
+    ior: 1.0
 - type: sphere
   position: [10,70,300]
   radius: 50
@@ -42,6 +43,7 @@ Objects:
     kd: 0.3
     ks: 0.5
     n: 8
+    ior: 1.0
 - type: sphere
   position: [90,-30,150]
   radius: 50
@@ -51,6 +53,7 @@ Objects:
     kd: 0.7
     ks: 0.8
     n: 32
+    ior: 1.0
 - type: sphere
   position: [-60,20,400]
   radius: 50
@@ -60,6 +63,7 @@ Objects:
     kd: 0.8
     ks: 0.0
     n: 1
+    ior: 2.0
 - type: sphere
   position: [-90,-70,200]
   radius: 50
@@ -69,3 +73,4 @@ Objects:
     kd: 0.8
     ks: 0.5
     n: 32
+    ior: 1.0

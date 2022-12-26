@@ -10,6 +10,7 @@ public:
     double kd;          // diffuse intensity
     double ks;          // specular intensity 
     double n;           // exponent for specular highlight size
+    double refraction;  // indice of refraction
 
     Material()
     { }
