@@ -20,7 +20,7 @@ file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/yaml/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/objects/*.cpp
-  # TODO include vulkan
+  #${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan/*.cpp
 )
 
 # Add header files
@@ -28,7 +28,7 @@ file(GLOB HEADER_FILES
 	${CMAKE_SOURCE_DIR}/src/*.h
 	${CMAKE_SOURCE_DIR}/src/*.hpp
     ${CMAKE_SOURCE_DIR}/src/objects/*.hpp
-    # TODO include vulkan
+    #${CMAKE_SOURCE_DIR}/src/vulkan/*.hpp
 )
 
 # Define the include DIRs
@@ -47,10 +47,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDES})
 # setup openmp
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
 
-#[===[
 add_subdirectory("${PROJECT_SOURCE_DIR}/deps/glfw-3.3.6")
 target_link_libraries(${PROJECT_NAME} glfw)
 
@@ -101,4 +100,3 @@ foreach(fragment-shader ${fragment-shaders})
 	message("Compiled " ${p})
 	add_shader(${PROJECT_NAME} ${p})
 endforeach(fragment-shader)
-]===]

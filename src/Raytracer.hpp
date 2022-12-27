@@ -1,40 +1,31 @@
-//
-//  Framework for a raytracer
-//  File: raytracer.h
-//
-//  Created for the Computer Science course "Introduction Computer Graphics"
-//  taught at the University of Groningen by Tobias Isenberg.
-//
-//  Author: Maarten Everts
-//
-//  This framework is inspired by and uses code of the raytracer framework of 
-//  Bert Freudenberg that can be found at
-//  http://isgwww.cs.uni-magdeburg.de/graphik/lehre/cg2/projekt/rtprojekt.html 
-//
-
 #pragma once
 
 #include <iostream>
 #include <string>
 #include "objects/Light.hpp"
 #include "Scene.hpp"
+#include "Camera.hpp"
 #include "yaml/yaml.h"
 
+struct TraceState
+{
+    double reflectionFactor = 1.0;
+    int bounces = 0;
+};
 class Raytracer {
-private:
-    std::string assetsDir;
-    
-    // Couple of private functions for parsing YAML nodes
-    std::unique_ptr<Material> parseMaterial(const YAML::Node& node);
-    std::unique_ptr<Object> parseObject(const YAML::Node& node);
-    std::unique_ptr<Light> parseLight(const YAML::Node& node);
-
 public:
-    Raytracer()
-    { }
+    Raytracer(std::shared_ptr<Scene> scene);
 
-    std::unique_ptr<Scene> scene;
+    void render(Image &img);
+    bool readParameters(const std::string& inputFilename);
+private:
+    Color traceColor(const Ray &ray, TraceState state = TraceState{});
+    Color traceDepth(const Ray &ray, const glm::dvec3 &axis, double near, double far);
+    Color traceNormals(const Ray &ray);
 
-    bool readScene(const std::string& inputFilename);
-    void renderToFile(const std::string& outputFilename);
+    std::shared_ptr<Scene> scene; //TODO remove
+    bool shadows = true;
+    double reflectionTheshold = 0.01;
+    int maxBounces = 10;
+
 };
