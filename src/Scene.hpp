@@ -32,5 +32,5 @@ public:
     Color traceColor(const Ray &ray, TraceState state = TraceState{});
     Color traceDepth(const Ray &ray, const glm::dvec3 &axis, double near, double far);
     Color traceNormals(const Ray &ray);
-    void render(Image &img);
+    void render(Image &img, int msaa = 1);
 };

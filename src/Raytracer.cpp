@@ -43,8 +43,10 @@ std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
     node["kd"] >> m->kd;
     node["ks"] >> m->ks;
     node["n"] >> m->n;
-    node["ior"] >> m->refraction;
-    m->refraction = std::max(m->refraction, 1.0);
+    if (node.FindValue("ior")) {
+        node["ior"] >> m->ior;
+        m->ior = std::max(m->ior, 1.0);
+    }
     return m;
 }
 
@@ -188,7 +190,7 @@ void Raytracer::renderToFile(const std::string& outputFilename)
 {
     Image img(1600, 1600);
     std::cout << "Tracing..." << std::endl;
-    scene->render(img);
+    scene->render(img, 100);
     std::cout << "Writing image to " << outputFilename << "..." << std::endl;
     img.writePng(outputFilename.c_str());
     std::cout << "Done." << std::endl;

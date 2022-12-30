@@ -67,7 +67,7 @@ Objects:
     kd: 0.8
     ks: 0
     n: 1
-    ior: 1.1
+    ior: 1.5
 - type: sphere
   position: [110,130,200]
   radius: 50

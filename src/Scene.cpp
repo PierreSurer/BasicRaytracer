@@ -73,53 +73,61 @@ Color Scene::traceColor(const Ray &ray, TraceState state)
         }
     }
 
-    Color reflectionColor;
     // reflection
-    if (state.bounces < options.maxBounces && mat->ks * state.reflectionFactor > options.reflectionTheshold) { // reflection
-        state.bounces++;
-        state.reflectionFactor *= mat->ks;
+    Color reflectionColor(0);
+    if (state.bounces < options.maxBounces && mat->ks * state.reflectionFactor > options.reflectionTheshold) {
+        TraceState nextState(state);
+        nextState.bounces++;
+        nextState.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hit.N);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-        reflectionColor = traceColor(reflectionRay, state) * mat->ks;
+        reflectionColor = traceColor(reflectionRay, nextState) * mat->ks;
     }
     
-    Color refractionColor = color;
-    if (state.bounces < options.maxBounces && mat->refraction > 1.0) {// refraction
-        dvec3 refractionDir = refract(ray.D, hit.N, mat->refraction);
+    // refraction
+    Color refractionColor(0);
+    if (state.bounces < options.maxBounces && mat->ior > 1.0) {
+        dvec3 refractionDir = refract(ray.D, hit.N, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
             Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
             Hit refractionHit = obj->intersect(refractionRay);
             if(!refractionHit.no_hit) {
-                refractionDir = refract(refractionRay.D, -refractionHit.N, 1.0 / mat->refraction);
+                refractionDir = refract(refractionRay.D, -refractionHit.N, mat->ior);
                 refractionRay = Ray(refractionRay.at(refractionHit.t) + EPS * refractionDir, refractionDir);
             }
-            state.bounces++;
+            TraceState nextState(state);
+            nextState.bounces++;
             if(refractionDir != dvec3(0.0))
-                refractionColor = traceColor(refractionRay, state);
+                refractionColor = traceColor(refractionRay, nextState);
         }
+    }
 
-        double kr = mat->refraction;
-        // fresnel
-        double cosi = dot(ray.D, hit.N); 
-        double etai = 1, etat = mat->refraction; 
-        if (cosi > 0) { std::swap(etai, etat); } 
-        // Compute sini using Snell's law
-        double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi)); 
-        // Total internal reflection
-        if (sint >= 1.0) { 
-            kr = 1.0; 
-        } 
-        else { 
-            double cost = sqrt(std::max(0.0, 1 - sint * sint)); 
-            cosi = abs(cosi); 
-            double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost)); 
-            double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost)); 
-            kr = (Rs * Rs + Rp * Rp) / 2.0; 
-        }
+    // color mixing
+    // double kr = mat->ior;
+    // // fresnel
+    // double cosi = dot(ray.D, hit.N);
+    // double etai = 1, etat = mat->ior;
+    // if (cosi > 0) { std::swap(etai, etat); }
+    // // Compute sini using Snell's law
+    // double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+    // // Total internal reflection
+    // if (sint >= 1.0) {
+    //     kr = 1.0;
+    // } 
+    // else {
+    //     double cost = sqrt(std::max(0.0, 1 - sint * sint));
+    //     cosi = abs(cosi); 
+    //     double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+    //     double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+    //     kr = (Rs * Rs + Rp * Rp) / 2.0;
+    // }
 
-        color += reflectionColor * kr + refractionColor * (1.0 - kr);
+    // color += reflectionColor * kr + refractionColor * (1.0 - kr);
 
-    } else {
+    if (mat->ior > 1.0) {
+        color = refractionColor;
+    }
+    else {
         color += reflectionColor;
     }
 
@@ -167,10 +175,11 @@ Color Scene::traceNormals(const Ray &ray)
     return Color(1.0 + N) * 0.5;
 }
 
-void Scene::render(Image &img)
+void Scene::render(Image &img, int msaa)
 {
-    int w = img.width();
-    int h = img.height();
+    using uint = uint64_t;
+    uint w = img.width() * msaa;
+    uint h = img.height() * msaa;
 
     // build a set of camera axes
     dvec3 cam_z = normalize(eye - target); // -view_direction
@@ -180,20 +189,29 @@ void Scene::render(Image &img)
     // distance of the focal plane
     double dz = (h - 1) / (2.0 * tan(radians(fov) / 2.0));
 
-    #pragma omp parallel for
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
-            
-            double dx = x - w / 2.0 + 0.5;
-            double dy = (h - y - 1) - h / 2.0 + 0.5;
-            dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
-            
-            Ray ray(eye, dir);
-            // Color col = traceDepth(ray, view_dir, 500, 1000);
-            // Color col = traceNormals(ray);
-            Color col = traceColor(ray);
-            col = clamp(col, 0.0, 1.0);
-            img(x, y) = col;
-        }
+    double msaa_factor = 1.0 / (msaa * msaa);
+
+    #pragma omp parallel for schedule(static, msaa * msaa)
+    for (uint i = 0; i < w * h; i++) {
+
+        // compute the sample x and y coordinates. work in blocks of msaa * msaa samples
+        // to avoid write conflicts in the parallel for.
+        uint pi = i / (msaa * msaa);           // pixel index
+        uint po = i % (msaa * msaa);           // sample offset in pixel
+        uint px = pi % img.width();            // pixel x coordinate
+        uint py = pi / img.width();            // pixel y coordinate
+        uint x = (px * msaa) + (po % msaa);
+        uint y = (py * msaa) + (po / msaa);
+        
+        double dx = x - w / 2.0 + 0.5;
+        double dy = (h - y - 1) - h / 2.0 + 0.5;
+        dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
+        
+        Ray ray(eye, dir);
+        // Color col = traceDepth(ray, view_dir, 500, 1000);
+        // Color col = traceNormals(ray);
+        Color col = traceColor(ray);
+        col = clamp(col, 0.0, 1.0);
+        img(px, py) += col * msaa_factor;
     }
 }
