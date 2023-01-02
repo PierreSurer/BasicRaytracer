@@ -34,9 +34,6 @@ Hit Mesh::Triangle::intersect(const Ray &ray) const
 {
     // test for backface culling: triangle faces away => is invisible
     double proj = dot(ray.D, N);
-    if (proj >= 0) {
-        return Hit::NO_HIT();
-    }
 
     // project the ray on the plane surface
     double t = dot((p1 - ray.O), N) / proj;

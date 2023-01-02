@@ -38,7 +38,7 @@ glm::dvec3 parseVector(const YAML::Node& node)
 std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
 {
     std::unique_ptr<Material> m = std::make_unique<Material>();
-    node["color"] >> m->color;	
+    node["color"] >> m->color;
     node["ka"] >> m->ka;
     node["kd"] >> m->kd;
     node["ks"] >> m->ks;
@@ -190,7 +190,7 @@ void Raytracer::renderToFile(const std::string& outputFilename)
 {
     Image img(1600, 1600);
     std::cout << "Tracing..." << std::endl;
-    scene->render(img, 100);
+    scene->render(img, 3);
     std::cout << "Writing image to " << outputFilename << "..." << std::endl;
     img.writePng(outputFilename.c_str());
     std::cout << "Done." << std::endl;

@@ -9,9 +9,6 @@ Hit Triangle::intersect(const Ray &ray) const
     glm::dvec3 N = normalize(cross(d1, d2));
 
     double proj = dot(ray.D, N);
-    if (proj > 0.0) { // triangle faces away => is invisible
-        return Hit::NO_HIT();
-    }
     
     // project the ray on the plane surface
     double t = dot((p1 - ray.O), N) / proj;
