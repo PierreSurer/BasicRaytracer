@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <glm.hpp>
 #include <glm/gtx/norm.hpp>
+#include <functional>
+#include <omp.h>
 
 using namespace glm;
 
@@ -175,11 +177,11 @@ Color Scene::traceNormals(const Ray &ray)
     return Color(1.0 + N) * 0.5;
 }
 
-void Scene::render(Image &img, int msaa)
+void Scene::render(Image &img)
 {
-    using uint = uint64_t;
-    uint w = img.width() * msaa;
-    uint h = img.height() * msaa;
+    int msaa = options.superSampling;
+    int64_t w = img.width() * msaa;
+    int64_t h = img.height() * msaa;
 
     // build a set of camera axes
     dvec3 cam_z = normalize(eye - target); // -view_direction
@@ -191,26 +193,37 @@ void Scene::render(Image &img, int msaa)
 
     double msaa_factor = 1.0 / (msaa * msaa);
 
-    #pragma omp parallel for schedule(static, msaa * msaa)
-    for (uint i = 0; i < w * h; i++) {
+    #pragma omp parallel for schedule(static, msaa * msaa * 64)
+    for (int64_t i = 0; i < w * h; i++) {
 
         // compute the sample x and y coordinates. work in blocks of msaa * msaa samples
         // to avoid write conflicts in the parallel for.
-        uint pi = i / (msaa * msaa);           // pixel index
-        uint po = i % (msaa * msaa);           // sample offset in pixel
-        uint px = pi % img.width();            // pixel x coordinate
-        uint py = pi / img.width();            // pixel y coordinate
-        uint x = (px * msaa) + (po % msaa);
-        uint y = (py * msaa) + (po / msaa);
+        int64_t pi = i / (msaa * msaa);           // pixel index
+        int64_t po = i % (msaa * msaa);           // sample offset in pixel
+        int64_t px = pi % img.width();            // pixel x coordinate
+        int64_t py = pi / img.width();            // pixel y coordinate
+        int64_t x = (px * msaa) + (po % msaa);
+        int64_t y = (py * msaa) + (po / msaa);
         
         double dx = x - w / 2.0 + 0.5;
         double dy = (h - y - 1) - h / 2.0 + 0.5;
         dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
-        
+        Color col;
         Ray ray(eye, dir);
-        // Color col = traceDepth(ray, view_dir, 500, 1000);
-        // Color col = traceNormals(ray);
-        Color col = traceColor(ray);
+        switch (options.mode)
+        {
+        case RenderMode::PHONG:
+            col = traceColor(ray);
+            break;
+        case RenderMode::DEPTH:
+            col = traceDepth(ray, -cam_z, 500, 1000);
+            break;
+        case RenderMode::NORMAL:
+            col = traceNormals(ray);
+            break;
+        default:
+            throw std::runtime_error("No render type matched");
+        } 
         col = clamp(col, 0.0, 1.0);
         img(px, py) += col * msaa_factor;
     }

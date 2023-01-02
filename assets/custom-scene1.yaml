@@ -12,9 +12,12 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
+SuperSampling:
+  factor: 2
+
 Camera:
   eye: [0, 0, 500]
-  target: [0, 0, 0]
+  center: [0, 0, 0]
   up: [0, 1, 0]
   fov: 70
 

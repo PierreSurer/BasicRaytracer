@@ -142,12 +142,21 @@ bool Raytracer::readScene(const std::string& inputFilename)
             const YAML::Node& cam = doc["Camera"];
             scene->eye = parseVector(cam["eye"]);
             scene->up = parseVector(cam["up"]);
-            scene->target = parseVector(cam["target"]);
-            cam["fov"] >> scene->fov;
+            scene->target = parseVector(cam["center"]);
+            if (cam.FindValue("fov")) cam["fov"] >> scene->fov;
             if (doc.FindValue("Shadows")) doc["Shadows"] >> scene->options.shadows;
             if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> scene->options.maxBounces;
             if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> scene->options.reflectionTheshold;
-            
+            if (doc.FindValue("SuperSampling")) {
+                const YAML::Node& msaa = doc["SuperSampling"];
+                msaa["factor"] >> scene->options.superSampling;
+            } 
+            if (doc.FindValue("RenderMode")) {
+                if(doc["RenderMode"] == "zbuffer") scene->options.mode = RenderMode::DEPTH;
+                if(doc["RenderMode"] == "normal") scene->options.mode = RenderMode::NORMAL;
+                if(doc["RenderMode"] == "phong") scene->options.mode = RenderMode::PHONG;
+            }
+
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
             if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
@@ -188,9 +197,9 @@ bool Raytracer::readScene(const std::string& inputFilename)
 
 void Raytracer::renderToFile(const std::string& outputFilename)
 {
-    Image img(1600, 1600);
+    Image img(400, 400);
     std::cout << "Tracing..." << std::endl;
-    scene->render(img, 3);
+    scene->render(img);
     std::cout << "Writing image to " << outputFilename << "..." << std::endl;
     img.writePng(outputFilename.c_str());
     std::cout << "Done." << std::endl;

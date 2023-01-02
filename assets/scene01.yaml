@@ -14,7 +14,7 @@
 
 Camera:
   eye: [0, 0, 800]
-  target: [0, 0, 0]
+  center: [0, 0, 0]
   up: [0, 1, 0]
   fov: 70
 
