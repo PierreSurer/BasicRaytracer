@@ -1,4 +1,8 @@
 #include "Scene.hpp"
+#include "Material.hpp"
+#include "Image.hpp"
+#include "ParseObj.hpp"
+
 #include "objects/Box.hpp"
 #include "objects/Cylinder.hpp"
 #include "objects/Mesh.hpp"
@@ -6,14 +10,32 @@
 #include "objects/Sphere.hpp"
 #include "objects/Light.hpp"
 #include "objects/Triangle.hpp"
-#include "Material.hpp"
-#include "Image.hpp"
-#include "ParseObj.hpp"
+
+#include "vulkan/RenderColorSystem.hpp"
+
 #include <ctype.h>
 #include <fstream>
+#include <chrono>
 #include <assert.h>
 
 #include <glm/gtc/type_ptr.hpp>
+
+#ifdef NDEBUG
+    constexpr bool enableValidationLayers = false;
+#else
+    constexpr bool enableValidationLayers = true;
+#endif
+
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
+
+const std::vector<const char*> validationLayers = { //TODO more validation layers
+    "VK_LAYER_KHRONOS_validation"
+};
+
+const std::vector<const char*> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
 
 // Functions to ease reading from YAML input
 void operator >> (const YAML::Node& node, glm::dvec3& v);
@@ -34,6 +56,18 @@ glm::dvec3 parseVector(const YAML::Node& node)
     node[1] >> v.y;
     node[2] >> v.z;
     return v;
+}
+
+Scene::Scene() : window(WIDTH, HEIGHT), device(window), renderer(this->window, this->device){
+}
+
+Scene::~Scene() {
+}
+
+void Scene::updateObjects(const double& dt) {
+    for(auto& obj : objects) {
+        obj->update(dt);
+    }
 }
 
 std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node)
@@ -184,4 +218,30 @@ bool Scene::readScene(const std::string& inputFilename)
 
     std::cout << "YAML parsing results: " << objects.size() << " objects read." << std::endl;
     return true;
+}
+
+void Scene::run() {
+    RenderColorSystem renderColorSystem(device, renderer.getSwapChainRenderPass());
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    double worldTime = 0.0;
+    while (!window.shouldClose()) {
+        glfwPollEvents();
+
+        auto newTime = std::chrono::high_resolution_clock::now();
+        float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        currentTime = newTime;
+        worldTime += (double)dt;
+
+        updateObjects(dt);
+        //mainCamera.update(&window, dt);
+
+        if (auto commandBuffer = renderer.beginFrame()) {
+            renderer.beginSwapChainRenderPass(commandBuffer);
+            renderColorSystem.renderObjects(commandBuffer, mainCamera, objects, worldTime);
+            renderer.endSwapChainRenderPass(commandBuffer);
+            renderer.endFrame();
+        }
+    }
+    vkDeviceWaitIdle(device.getDevice());
 }

@@ -73,9 +73,9 @@ void Device::createInstance() {
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "LittleVulkanEngine App";
+    appInfo.pApplicationName = "Basic Raytracer";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Device";
+    appInfo.pEngineName = "Monjang vk engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
@@ -100,7 +100,7 @@ void Device::createInstance() {
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
+        throw std::runtime_error("Failed to create instance!");
     }
 
     hasGflwRequiredInstanceExtensions();
@@ -110,7 +110,7 @@ void Device::pickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if (deviceCount == 0) {
-        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+        throw std::runtime_error("Failed to find GPUs with Vulkan support!");
     }
     std::cout << "Device count: " << deviceCount << std::endl;
     std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -118,17 +118,17 @@ void Device::pickPhysicalDevice() {
 
     for (const auto &device : devices) {
         if (isDeviceSuitable(device)) {
-        physicalDevice = device;
-        break;
+            physicalDevice = device;
+            break;
         }
     }
 
     if (physicalDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable GPU!");
+        throw std::runtime_error("Failed to find a suitable GPU!");
     }
 
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    std::cout << "physical device: " << properties.deviceName << std::endl;
+    std::cout << "Physical device: " << properties.deviceName << std::endl;
 }
 
 void Device::createLogicalDevice() {
@@ -170,7 +170,7 @@ void Device::createLogicalDevice() {
     }
 
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create logical device!");
+        throw std::runtime_error("Failed to create logical device!");
     }
 
     vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
@@ -187,7 +187,7 @@ void Device::createCommandPool() {
         VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create command pool!");
+        throw std::runtime_error("Failed to create command pool!");
     }
 }
 
@@ -276,19 +276,19 @@ void Device::hasGflwRequiredInstanceExtensions() {
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-    std::cout << "available extensions:" << std::endl;
+    std::cout << "Available extensions:" << std::endl;
     std::unordered_set<std::string> available;
     for (const auto &extension : extensions) {
         std::cout << "\t" << extension.extensionName << std::endl;
         available.insert(extension.extensionName);
     }
 
-    std::cout << "required extensions:" << std::endl;
+    std::cout << "Required extensions:" << std::endl;
     auto requiredExtensions = getRequiredExtensions();
     for (const auto &required : requiredExtensions) {
         std::cout << "\t" << required << std::endl;
         if (available.find(required) == available.end()) {
-        throw std::runtime_error("Missing required glfw extension");
+            throw std::runtime_error("Missing required glfw extension");
         }
     }
 }
@@ -325,15 +325,15 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
     int i = 0;
     for (const auto &queueFamily : queueFamilies) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-        indices.graphicsFamily = i;
+            indices.graphicsFamily = i;
         }
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
         if (queueFamily.queueCount > 0 && presentSupport) {
-        indices.presentFamily = i;
+            indices.presentFamily = i;
         }
         if (indices.isComplete()) {
-        break;
+            break;
         }
 
         i++;
@@ -374,7 +374,7 @@ VkFormat Device::findSupportedFormat(const std::vector<VkFormat> &candidates, Vk
         vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
 
         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
-        return format;
+            return format;
         } else if (
             tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
         return format;
@@ -389,7 +389,7 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) &&
             (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-        return i;
+            return i;
         }
     }
 

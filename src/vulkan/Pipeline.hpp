@@ -23,9 +23,17 @@ struct PipelineConfigInfo {
     uint32_t subpass = 0;
 };
 
+struct RaytracingShaderPaths {
+    std::string raygenShader;
+    std::string intersectionShader;
+    std::string anyHitShader;
+    std::string closestHitShader;
+    std::string missShader;
+};
+
 class Pipeline {
 public:
-    Pipeline(Device &device, const std::string& vertexPath, const std::string& fragmentPath, const PipelineConfigInfo& configInfo);
+    Pipeline(Device &device, RaytracingShaderPaths const& shaderPath, PipelineConfigInfo const& configInfo);
     ~Pipeline();
 
     Pipeline(const Pipeline&) = delete;
@@ -41,8 +49,7 @@ private:
 
     Device& device;
     VkPipeline graphicsPipeline;
-    VkShaderModule vertexShaderModule;
-    VkShaderModule fragmentShaderModule;
+    std::vector<VkShaderModule> shaderModules;
 
 };
 

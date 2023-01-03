@@ -1,11 +1,10 @@
-#include "SimpleRenderSystem.hpp"
+#include "RenderColorSystem.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-
 
 #include <array>
 #include <stdexcept>
@@ -16,16 +15,16 @@ struct SimplePushConstantData {
     alignas(4*2) double time;
 };
 
-SimpleRenderSystem::SimpleRenderSystem(Device& device, VkRenderPass renderPass) : device(device) {
+RenderColorSystem::RenderColorSystem(Device& device, VkRenderPass renderPass) : device(device) {
     createPipelineLayout();
     createPipeline(renderPass);
 }
 
-SimpleRenderSystem::~SimpleRenderSystem() {
+RenderColorSystem::~RenderColorSystem() {
   vkDestroyPipelineLayout(device.getDevice(), pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::createPipelineLayout() {
+void RenderColorSystem::createPipelineLayout() {
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     pushConstantRange.offset = 0;
@@ -42,7 +41,7 @@ void SimpleRenderSystem::createPipelineLayout() {
     }
 }
 
-void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+void RenderColorSystem::createPipeline(VkRenderPass renderPass) {
     PipelineConfigInfo pipelineConfig{};
     Pipeline::defaultPipelineConfigInfo(pipelineConfig);
     pipelineConfig.renderPass = renderPass;
@@ -50,15 +49,15 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
     pipeline = std::make_unique<Pipeline>(device, "shaders/shader_vert.spv", "shaders/shader_frag.spv", pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, Camera& camera, std::vector<GameObject>& gameObjects, double worldTime) {
+void RenderColorSystem::renderGameObjects(VkCommandBuffer commandBuffer, Camera& camera, std::vector<std::unique_ptr<Objects>> const& objects, double worldTime) {
     pipeline->bind(commandBuffer);
-    for (auto& obj : gameObjects) {
+    for (auto& obj : objects) {
         SimplePushConstantData push{};
         push.transform = glm::mat4(1.0f);
         push.transform *= camera.getProjection();
-        push.transform *= glm::translate(glm::mat4(1.0f), obj.position - glm::vec3(0.0f, camera.position.y, 0.0f));
-        push.transform *= glm::scale(glm::mat4(1.0f), obj.size);
-        push.transform *= glm::mat4_cast(glm::quat(glm::radians(obj.rotation)));
+        push.transform *= glm::translate(glm::mat4(1.0f), obj->position - glm::vec3(0.0f, camera.position.y, 0.0f));
+        push.transform *= glm::scale(glm::mat4(1.0f), 1.0); //TODO : scale?
+        push.transform *= glm::mat4_cast(glm::quat(glm::radians(obj->rotation)));
 
         push.offset = camera.position;
         push.time = worldTime;

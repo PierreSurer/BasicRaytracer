@@ -1,31 +1,70 @@
 #include "Pipeline.hpp"
 
-#include "Model.hpp"
 #include <fstream>
 #include <stdexcept>
 
-Pipeline::Pipeline(Device &device, const std::string& vertexPath, const std::string& fragmentPath, const PipelineConfigInfo& configInfo) : device(device){
-    auto vertex = readFile(vertexPath);
-    auto fragment = readFile(fragmentPath);
+Pipeline::Pipeline(Device &device, RaytracingShaderPaths const& shaderPath, PipelineConfigInfo const& configInfo) : device(device){
 
-    vertexShaderModule = createShaderModule(vertex);
-    fragmentShaderModule = createShaderModule(fragment);
+    auto raygen = readFile(shaderPath.raygenShader);
+    shaderModules.push_back(createShaderModule(raygen));
 
-    VkPipelineShaderStageCreateInfo shaderStages[2];
+    auto intersection = readFile(shaderPath.intersectionShader);
+    shaderModules.push_back(createShaderModule(intersection));
+
+    auto anyHit = readFile(shaderPath.anyHitShader);
+    shaderModules.push_back(createShaderModule(anyHit));
+
+    auto closestHit = readFile(shaderPath.closestHitShader);
+    shaderModules.push_back(createShaderModule(closestHit));
+
+    auto miss = readFile(shaderPath.missShader);
+    shaderModules.push_back(createShaderModule(miss));
+
+    VkPipelineShaderStageCreateInfo shaderStages[5];
     shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-    shaderStages[0].module = vertexShaderModule;
+    shaderStages[0].stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+    shaderStages[0].module = shaderModules[0];
     shaderStages[0].pName = "main";
     shaderStages[0].flags = 0;
     shaderStages[0].pNext = nullptr;
     shaderStages[0].pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[5];
     shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    shaderStages[1].module = fragmentShaderModule;
+    shaderStages[1].stage = VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+    shaderStages[1].module = shaderModules[1];
     shaderStages[1].pName = "main";
     shaderStages[1].flags = 0;
     shaderStages[1].pNext = nullptr;
     shaderStages[1].pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[5];
+    shaderStages[2].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStages[2].stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+    shaderStages[2].module = shaderModules[2];
+    shaderStages[2].pName = "main";
+    shaderStages[2].flags = 0;
+    shaderStages[2].pNext = nullptr;
+    shaderStages[2].pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[5];
+    shaderStages[3].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStages[3].stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+    shaderStages[3].module = shaderModules[3];
+    shaderStages[3].pName = "main";
+    shaderStages[3].flags = 0;
+    shaderStages[3].pNext = nullptr;
+    shaderStages[3].pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo shaderStages[5];
+    shaderStages[4].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStages[4].stage = VK_SHADER_STAGE_MISS_BIT_KHR;
+    shaderStages[4].module = shaderModules[4];
+    shaderStages[4].pName = "main";
+    shaderStages[4].flags = 0;
+    shaderStages[4].pNext = nullptr;
+    shaderStages[4].pSpecializationInfo = nullptr;
+
 
     auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
     auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
@@ -64,8 +103,9 @@ Pipeline::Pipeline(Device &device, const std::string& vertexPath, const std::str
 }
 
 Pipeline::~Pipeline() {
-    vkDestroyShaderModule(device.getDevice(), vertexShaderModule, nullptr);
-    vkDestroyShaderModule(device.getDevice(), fragmentShaderModule, nullptr);
+    for(auto module : shaderModules) {
+            vkDestroyShaderModule(device.getDevice(), module, nullptr);
+    }
     vkDestroyPipeline(device.getDevice(), graphicsPipeline, nullptr);
 }
 
