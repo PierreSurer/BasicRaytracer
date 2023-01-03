@@ -183,7 +183,7 @@ void Scene::render(Image &img)
     int64_t w = img.width() * msaa;
     int64_t h = img.height() * msaa;
 
-    // build a set of camera axes
+    // build a set of camera axes (right-hand rule, look in z-negative direction)
     dvec3 cam_z = normalize(eye - target); // -view_direction
     dvec3 cam_x = cross(up, cam_z);
     dvec3 cam_y = cross(cam_z, cam_x);

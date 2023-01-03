@@ -17,6 +17,39 @@
 
 using namespace glm;
 
+
+static dmat4 transpose_inverse(const dmat4& mat) {
+    return transpose(inverse(mat));
+}
+
+void Mesh::transform(const dmat4& mat) {
+    transform(mat, transpose_inverse(mat));
+}
+
+void Mesh::transform(const dmat4& mat, const dmat4& norm_mat) {
+    std::for_each(begin(faces), end(faces), [&](auto& f) {
+        f.transform(mat, norm_mat);
+    });
+}
+
+void Mesh::Triangle::transform(const dmat4& mat, const dmat4& norm_mat) {
+    p1 = mat * dvec4(p1, 1.0);
+    p2 = mat * dvec4(p2, 1.0);
+    p3 = mat * dvec4(p3, 1.0);
+    n1 = norm_mat * dvec4(n1, 1.0);
+    n2 = norm_mat * dvec4(n2, 1.0);
+    n3 = norm_mat * dvec4(n3, 1.0);
+
+    // compute a main normal
+    glm::dvec3 d1 = p2 - p1;
+    glm::dvec3 d2 = p3 - p1;
+    N = glm::normalize(glm::cross(d1, d2));
+}
+
+void Mesh::Triangle::transform(const dmat4& mat) {
+    transform(mat, transpose_inverse(mat));
+}
+
 Hit Mesh::intersect(const Ray& ray) const
 {
     Hit min_hit = Hit::NO_HIT();

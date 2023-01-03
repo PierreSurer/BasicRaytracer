@@ -27,6 +27,15 @@ public:
         : faces(faces)
     { }
 
+    Mesh(std::vector<Triangle> faces, const glm::dmat4& mat)
+        : faces(faces)
+    {
+        transform(mat);
+    }
+
+    void transform(const glm::dmat4& mat);
+    void transform(const glm::dmat4& mat, const glm::dmat4& norm_mat);
+
     Hit intersect(const Ray &ray) const;
 
 
@@ -46,6 +55,9 @@ public:
         {
             n1 = n2 = n3 = N;
         }
+
+        void transform(const glm::dmat4& mat);
+        void transform(const glm::dmat4& mat, const glm::dmat4& norm_mat);
 
         Hit intersect(const Ray &ray) const override;
 

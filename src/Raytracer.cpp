@@ -1,4 +1,7 @@
 #include "Raytracer.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/gtx/euler_angles.hpp"
 #include "objects/Box.hpp"
 #include "objects/Cylinder.hpp"
 #include "objects/Mesh.hpp"
@@ -14,11 +17,13 @@
 #include <fstream>
 #include <assert.h>
 
-// Functions to ease reading from YAML input
-void operator >> (const YAML::Node& node, glm::dvec3& v);
-glm::dvec3 parseVector(const YAML::Node& node);
+using namespace glm;
 
-void operator >> (const YAML::Node& node, glm::dvec3& v)
+// Functions to ease reading from YAML input
+void operator >> (const YAML::Node& node, dvec3& v);
+dvec3 parseVector(const YAML::Node& node);
+
+void operator >> (const YAML::Node& node, dvec3& v)
 {
     assert(node.size() == 3);
     node[0] >> v.x;
@@ -26,9 +31,9 @@ void operator >> (const YAML::Node& node, glm::dvec3& v)
     node[2] >> v.z;
 }
 
-glm::dvec3 parseVector(const YAML::Node& node)
+dvec3 parseVector(const YAML::Node& node)
 {
-    glm::dvec3 v;
+    dvec3 v;
     node[0] >> v.x;
     node[1] >> v.y;
     node[2] >> v.z;
@@ -57,14 +62,14 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
     node["type"] >> objectType;
 
     if (objectType == "sphere") {
-        glm::dvec3 pos;
+        dvec3 pos;
         double r;
         node["position"] >> pos;
         node["radius"] >> r;
         returnObject = std::make_unique<Sphere>(pos, r);
     }
     else if (objectType == "box") {
-        glm::dvec3 pos, rot;
+        dvec3 pos, rot;
         double size;
         node["position"] >> pos;
         node["rotation"] >> rot;
@@ -72,7 +77,7 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
         returnObject = std::make_unique<Box>(pos, radians(rot), size);
     }
     else if (objectType == "cylinder") {
-        glm::dvec3 pos, rot;
+        dvec3 pos, rot;
         double height, radius;
         node["position"] >> pos;
         node["rotation"] >> rot;
@@ -81,9 +86,9 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
         returnObject = std::make_unique<Cylinder>(pos, radians(rot), height, radius);
     }
     else if (objectType == "triangle") {
-        glm::dvec3 p1;
-        glm::dvec3 p2;
-        glm::dvec3 p3;
+        dvec3 p1;
+        dvec3 p2;
+        dvec3 p3;
         node["p1"] >> p1;
         node["p2"] >> p2;
         node["p3"] >> p3;
@@ -91,9 +96,19 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
     }
     else if (objectType == "mesh") {
         std::string fname;
+        dvec3 loc(0.0), rot(0.0), sca(1.0);
         node["file"] >> fname;
+        if (node.FindValue("position")) node["position"] >> loc;
+        if (node.FindValue("rotation")) node["rotation"] >> rot;
+        if (node.FindValue("scale")) node["scale"] >> sca;
+        rot = radians(rot);
+        dmat4 mat = translate(dmat4(1.0), loc)
+                       * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
+                       * scale(dmat4(1.0), sca);
         fname = assetsDir + fname;
-        returnObject = std::make_unique<Mesh>(parseObj(fname));
+        Mesh mesh = parseObj(fname);
+        mesh.transform(mat);
+        returnObject = std::make_unique<Mesh>(std::move(mesh));
     }
 
     if (returnObject) {
@@ -106,7 +121,7 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
 
 std::unique_ptr<Light> Raytracer::parseLight(const YAML::Node& node)
 {
-    glm::dvec3 position;
+    dvec3 position;
     Color color;
     node["position"] >> position;
     node["color"] >> color;

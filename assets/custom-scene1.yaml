@@ -28,7 +28,10 @@ Lights:
 Objects:
 
 - type: mesh
-  file: "suzanne3.obj"
+  file: "suzanne.obj"
+  rotation: [0, 90, 0]
+  position: [200, 0, 0]
+  scale: [100, 100, 100]
   material: # cyan
     color: [0.0,1.0,1.0]
     ka: 0.2
