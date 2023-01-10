@@ -12,8 +12,8 @@ Hit Box::intersect(const Ray &ray) const
     dvec3 localOrigin = inverse(orientation) * (ray.O - position);
     dvec3 localDirection = inverse(orientation) * ray.D;
 
-    dvec3 tMin = ((- size) - localOrigin) / localDirection;
-    dvec3 tMax = ((size) - localOrigin) / localDirection;
+    dvec3 tMin = ((-size) - localOrigin) / localDirection;
+    dvec3 tMax = ((+size) - localOrigin) / localDirection;
     dvec3 t1 = min(tMin, tMax);
     dvec3 t2 = max(tMin, tMax);
     double tNear = compMax(t1);

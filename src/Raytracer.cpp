@@ -69,8 +69,7 @@ std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
         returnObject = std::make_unique<Sphere>(pos, r);
     }
     else if (objectType == "box") {
-        dvec3 pos, rot;
-        double size;
+        dvec3 pos, rot, size;
         node["position"] >> pos;
         node["rotation"] >> rot;
         node["size"] >> size;

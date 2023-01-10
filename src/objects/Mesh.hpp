@@ -15,6 +15,7 @@
 #pragma once
 
 #include "Object.hpp"
+#include "objects/Box.hpp"
 #include <glm.hpp>
 #include <vector>
 
@@ -23,15 +24,9 @@ class Mesh : public Object
 public:
     class Triangle;
 
-    Mesh(std::vector<Triangle> faces)
-        : faces(faces)
-    { }
+    Mesh(std::vector<Triangle> faces);
 
-    Mesh(std::vector<Triangle> faces, const glm::dmat4& mat)
-        : faces(faces)
-    {
-        transform(mat);
-    }
+    Mesh(std::vector<Triangle> faces, const glm::dmat4& mat);
 
     void transform(const glm::dmat4& mat);
     void transform(const glm::dmat4& mat, const glm::dmat4& norm_mat);
@@ -67,5 +62,8 @@ public:
     };
 
 private:
+    void compute_aabb();
+
     std::vector<Triangle> faces;
+    Box aabb;
 };

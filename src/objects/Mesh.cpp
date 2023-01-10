@@ -17,6 +17,21 @@
 
 using namespace glm;
 
+void Mesh::compute_aabb() {
+    
+}
+
+Mesh::Mesh(std::vector<Triangle> faces)
+    : faces(std::move(faces))
+{
+    compute_aabb();
+}
+
+Mesh::Mesh(std::vector<Triangle> faces, const glm::dmat4& mat)
+    : Mesh(faces)
+{
+    transform(mat);
+}
 
 static dmat4 transpose_inverse(const dmat4& mat) {
     return transpose(inverse(mat));

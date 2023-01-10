@@ -78,7 +78,7 @@ Objects:
 - type: box
   position: [-110,-110,100]
   rotation: [45,12,4]
-  size: 50
+  size: [50, 200, 40]
   material: # red
     color: [1.0,0.0,0.0]
     ka: 0.2
