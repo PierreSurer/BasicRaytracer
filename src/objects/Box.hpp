@@ -5,7 +5,7 @@
 class Box : public Object
 {
 public:
-    Box()
+    Box(glm::dvec3 position = glm::dvec3(.0), glm::dvec3 rotation = glm::dvec3(.0), glm::dvec3 size = glm::dvec3(.0))
      : position(position), rotation(rotation), size(size) { }
 
     Hit intersect(const Ray &ray) const override;

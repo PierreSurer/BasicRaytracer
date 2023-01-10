@@ -1,149 +1,242 @@
 #include "Raytracer.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/gtx/euler_angles.hpp"
-#include "objects/Box.hpp"
-#include "objects/Cylinder.hpp"
-#include "objects/Mesh.hpp"
-#include "objects/Object.hpp"
-#include "objects/Sphere.hpp"
-#include "objects/Light.hpp"
-#include "objects/Triangle.hpp"
 #include "Material.hpp"
-#include "Image.hpp"
-#include "ParseObj.hpp"
-#include "yaml/yaml.h"
-#include <ctype.h>
+#include <algorithm>
+#include <glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include <fstream>
-#include <assert.h>
 
 using namespace glm;
 
-// Functions to ease reading from YAML input
-void operator >> (const YAML::Node& node, dvec3& v);
-dvec3 parseVector(const YAML::Node& node);
+static const double EPS = 0.00001;
 
-void operator >> (const YAML::Node& node, dvec3& v)
-{
-    assert(node.size() == 3);
-    node[0] >> v.x;
-    node[1] >> v.y;
-    node[2] >> v.z;
+Raytracer::Raytracer(std::shared_ptr<Scene> scene) : scene(scene) {
+
 }
 
-dvec3 parseVector(const YAML::Node& node)
+Color Raytracer::traceColor(const Ray &ray, TraceState state)
 {
-    dvec3 v;
-    node[0] >> v.x;
-    node[1] >> v.y;
-    node[2] >> v.z;
-    return v;
+    // Find hit object and distance
+    Hit hit = Hit::NO_HIT();
+    Object *obj = nullptr;
+    for (const auto &o : scene->objects) {
+        Hit thisHit = o->intersect(ray);
+        if (thisHit.t < hit.t) {
+            hit = thisHit;
+            obj = o.get();
+        }
+    }
+
+    // No hit? Return background color.
+    if (hit.no_hit)
+        return Color(0.0, 0.0, 0.0);
+
+    auto const& mat = obj->material;       //the hit objects material
+    dvec3 hitPoint = ray.at(hit.t);        //the hit point
+    
+    Color color(0.0, 0.0, 0.0);
+    color += mat->color * mat->ka;
+
+    for (auto const& light : scene->lights) {
+
+        dvec3 lightVector = light->position - hitPoint; // Not normalized as we need magnitude
+        dvec3 lightDir = normalize(lightVector);
+        bool inShadow = false;
+
+        if (shadows) {
+            Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
+            for (const auto &o : scene->objects) {
+                Hit shadowHit = o->intersect(shadowRay);
+                if(shadowHit.t <= length(lightVector)) {
+                    inShadow = true;
+                    break;
+                }
+            }
+        }
+        // ambient color calculation
+        // color += mat->color * mat->ka * light->ambientPower;
+
+        if (!inShadow) {
+            // Diffuse color calculation
+            Color diffuseColor = light->color * mat->color * mat->kd;
+            diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
+            // diffuseColor *= light->diffusePower / length2(lightVector);
+            color += diffuseColor;
+
+            // Specular color calculation using blinn-phong model
+            Color specularColor = light->color * mat->ks;
+            // blinn
+            dvec3 H = normalize(lightDir - ray.D);
+            double NdotH = clamp(dot(hit.N, H), 0.0, 1.0);
+            specularColor *= pow(NdotH, 4.0 * mat->n);
+            // phong
+            // dvec3 R = reflect(-lightDir, hit.N);
+            // double NdotH = clamp(dot(-ray.D, R), 0.0, 1.0);
+            // specularColor *= pow(NdotH, mat->n);
+            // specularColor *= light->specularPower / length2(lightVector);
+            color += specularColor;
+        }
+    }
+
+    // reflection
+    Color reflectionColor(0);
+    if (state.bounces < maxBounces && mat->ks * state.reflectionFactor > reflectionTheshold) {
+        TraceState nextState(state);
+        nextState.bounces++;
+        nextState.reflectionFactor *= mat->ks;
+        dvec3 reflectedDir = reflect(ray.D, hit.N);
+        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
+        reflectionColor = traceColor(reflectionRay, nextState) * mat->ks;
+    }
+    
+    // refraction
+    Color refractionColor(0);
+    if (state.bounces < maxBounces && mat->ior > 1.0) {
+        dvec3 refractionDir = refract(ray.D, hit.N, 1.0 / mat->ior);
+        if(refractionDir != dvec3(0.0)) { //refraction
+            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
+            Hit refractionHit = obj->intersect(refractionRay);
+            if(!refractionHit.no_hit) {
+                refractionDir = refract(refractionRay.D, -refractionHit.N, mat->ior);
+                refractionRay = Ray(refractionRay.at(refractionHit.t) + EPS * refractionDir, refractionDir);
+            }
+            TraceState nextState(state);
+            nextState.bounces++;
+            if(refractionDir != dvec3(0.0))
+                refractionColor = traceColor(refractionRay, nextState);
+        }
+    }
+
+    // color mixing
+    // double kr = mat->ior;
+    // // fresnel
+    // double cosi = dot(ray.D, hit.N);
+    // double etai = 1, etat = mat->ior;
+    // if (cosi > 0) { std::swap(etai, etat); }
+    // // Compute sini using Snell's law
+    // double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+    // // Total internal reflection
+    // if (sint >= 1.0) {
+    //     kr = 1.0;
+    // } 
+    // else {
+    //     double cost = sqrt(std::max(0.0, 1 - sint * sint));
+    //     cosi = abs(cosi); 
+    //     double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+    //     double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+    //     kr = (Rs * Rs + Rp * Rp) / 2.0;
+    // }
+
+    // color += reflectionColor * kr + refractionColor * (1.0 - kr);
+
+    if (mat->ior > 1.0) {
+        color = refractionColor;
+    }
+    else {
+        color += reflectionColor;
+    }
+
+    return color;
 }
 
-std::unique_ptr<Material> Raytracer::parseMaterial(const YAML::Node& node)
+Color Raytracer::traceDepth(const Ray &ray, const dvec3 &axis, double near, double far)
 {
-    std::unique_ptr<Material> m = std::make_unique<Material>();
-    node["color"] >> m->color;
-    node["ka"] >> m->ka;
-    node["kd"] >> m->kd;
-    node["ks"] >> m->ks;
-    node["n"] >> m->n;
-    if (node.FindValue("ior")) {
-        node["ior"] >> m->ior;
-        m->ior = std::max(m->ior, 1.0);
+    Ray newRay(ray.at(near), ray.D);
+
+    // Find hit object and distance
+    Hit min_hit = Hit::NO_HIT();
+    for (const auto &obj : scene->objects) {
+        Hit hit = obj->intersect(ray);
+        if (hit.t < min_hit.t) {
+            min_hit = hit;
+        }
     }
-    return m;
+
+    // compute distance and project it on the optical axis
+    double z = (min_hit.t - near) / (far - near); // Linearized distance
+    z = z * dot(axis, ray.D);
+    z = clamp(z, 0.0, 1.0);
+    Color color = Color(1.0) * (1.0 - z);
+
+    return color;
 }
 
-std::unique_ptr<Object> Raytracer::parseObject(const YAML::Node& node)
+Color Raytracer::traceNormals(const Ray &ray)
 {
-    std::unique_ptr<Object> returnObject;
-    std::string objectType;
-    node["type"] >> objectType;
-
-    if (objectType == "sphere") {
-        dvec3 pos;
-        double r;
-        node["position"] >> pos;
-        node["radius"] >> r;
-        returnObject = std::make_unique<Sphere>(pos, r);
-    }
-    else if (objectType == "box") {
-        dvec3 pos, rot, size;
-        node["position"] >> pos;
-        node["rotation"] >> rot;
-        node["size"] >> size;
-        returnObject = std::make_unique<Box>(pos, radians(rot), size);
-    }
-    else if (objectType == "cylinder") {
-        dvec3 pos, rot;
-        double height, radius;
-        node["position"] >> pos;
-        node["rotation"] >> rot;
-        node["height"] >> height;
-        node["radius"] >> radius;
-        returnObject = std::make_unique<Cylinder>(pos, radians(rot), height, radius);
-    }
-    else if (objectType == "triangle") {
-        dvec3 p1;
-        dvec3 p2;
-        dvec3 p3;
-        node["p1"] >> p1;
-        node["p2"] >> p2;
-        node["p3"] >> p3;
-        returnObject = std::make_unique<Triangle>(p1, p2, p3);
-    }
-    else if (objectType == "mesh") {
-        std::string fname;
-        dvec3 loc(0.0), rot(0.0), sca(1.0);
-        node["file"] >> fname;
-        if (node.FindValue("position")) node["position"] >> loc;
-        if (node.FindValue("rotation")) node["rotation"] >> rot;
-        if (node.FindValue("scale")) node["scale"] >> sca;
-        rot = radians(rot);
-        dmat4 mat = translate(dmat4(1.0), loc)
-                       * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
-                       * scale(dmat4(1.0), sca);
-        fname = assetsDir + fname;
-        Mesh mesh = parseObj(fname);
-        mesh.transform(mat);
-        returnObject = std::make_unique<Mesh>(std::move(mesh));
+    // Find hit object and distance
+    Hit min_hit = Hit::NO_HIT();
+    for (const auto &obj : scene->objects) {
+        Hit hit = obj->intersect(ray);
+        if (hit.t < min_hit.t) {
+            min_hit = hit;
+        }
     }
 
-    if (returnObject) {
-        // read the material and attach to object
-        returnObject->material = parseMaterial(node["material"]);
-    }
+    // No hit? Return background color.
+    if (min_hit.no_hit) return Color(0.0, 0.0, 0.0);
 
-    return returnObject;
+    dvec3 N = min_hit.N;                          //the normal at hit point
+
+    return Color(1.0 + N) * 0.5;
 }
 
-std::unique_ptr<Light> Raytracer::parseLight(const YAML::Node& node)
+void Raytracer::render(Image &img)
 {
-    dvec3 position;
-    Color color;
-    node["position"] >> position;
-    node["color"] >> color;
-    return std::make_unique<Light>(position, color);
+    int msaa = superSampling;
+    int64_t w = img.width() * msaa;
+    int64_t h = img.height() * msaa;
+
+    // build a set of camera axes (right-hand rule, look in z-negative direction)
+    glm::dvec3 cam_z = scene->camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0); // -view_direction
+    glm::dvec3 cam_x = scene->camera.getRotationMat() * glm::dvec4(1.0, 0.0, 0.0, 0.0);
+    glm::dvec3 cam_y = cross(cam_z, cam_x);
+
+    // distance of the focal plane
+    double dz = (h - 1) / (2.0 * tan(radians(scene->camera.fov) / 2.0));
+
+    double msaa_factor = 1.0 / (msaa * msaa);
+
+    #pragma omp parallel for schedule(static, msaa * msaa * 64)
+    for (int64_t i = 0; i < w * h; i++) {
+
+        // compute the sample x and y coordinates. work in blocks of msaa * msaa samples
+        // to avoid write conflicts in the parallel for.
+        int64_t pi = i / (msaa * msaa);           // pixel index
+        int64_t po = i % (msaa * msaa);           // sample offset in pixel
+        int64_t px = pi % img.width();            // pixel x coordinate
+        int64_t py = pi / img.width();            // pixel y coordinate
+        int64_t x = (px * msaa) + (po % msaa);
+        int64_t y = (py * msaa) + (po / msaa);
+        
+        double dx = x - w / 2.0 + 0.5;
+        double dy = (h - y - 1) - h / 2.0 + 0.5;
+        glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
+        Color col;
+        Ray ray(scene->camera.getPosition(), dir);
+        switch (mode)
+        {
+        case RenderMode::PHONG:
+            col = traceColor(ray);
+            break;
+        case RenderMode::DEPTH:
+            col = traceDepth(ray, -cam_z, scene->camera.near, scene->camera.far);
+            break;
+        case RenderMode::NORMAL:
+            col = traceNormals(ray);
+            break;
+        default:
+            throw std::runtime_error("No render type matched");
+        } 
+        col = clamp(col, 0.0, 1.0);
+        img(px, py) += col * msaa_factor;
+    }
 }
 
-/*
-* Read a scene from file
-*/
-
-bool Raytracer::readScene(const std::string& inputFilename)
-{
-    // extract assets directory name from inputFilename
-    // TODO: this is quick and unsafe
-    assetsDir = inputFilename.substr(0, inputFilename.find_last_of("/\\") + 1);
-
-    // Initialize a new scene
-    scene = std::make_unique<Scene>();
+bool Raytracer::readParameters(const std::string& inputFilename) {
 
     // Open file stream for reading and have the YAML module parse it
     std::ifstream fin(inputFilename.c_str());
     if (!fin) {
-        std::cerr << "Error: unable to open " << inputFilename << " for reading." << std::endl;;
+        std::cerr << "Error: unable to open " << inputFilename << " for reading parameters." << std::endl;;
         return false;
     }
     try {
@@ -151,51 +244,26 @@ bool Raytracer::readScene(const std::string& inputFilename)
         if (parser) {
             YAML::Node doc;
             parser.GetNextDocument(doc);
-
-            // Read scene configuration options
             const YAML::Node& cam = doc["Camera"];
-            scene->eye = parseVector(cam["eye"]);
-            scene->up = parseVector(cam["up"]);
-            scene->target = parseVector(cam["center"]);
-            if (cam.FindValue("fov")) cam["fov"] >> scene->fov;
-            if (doc.FindValue("Shadows")) doc["Shadows"] >> scene->options.shadows;
-            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> scene->options.maxBounces;
-            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> scene->options.reflectionTheshold;
+
+            if (doc.FindValue("Shadows")) doc["Shadows"] >> shadows;
+            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> maxBounces;
+            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> reflectionTheshold;
+
+            if (cam.FindValue("fov")) cam["fov"] >> scene->camera.fov;
+            if (doc.FindValue("Shadows")) doc["Shadows"] >> shadows;
+            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> maxBounces;
+            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> reflectionTheshold;
             if (doc.FindValue("SuperSampling")) {
                 const YAML::Node& msaa = doc["SuperSampling"];
-                msaa["factor"] >> scene->options.superSampling;
+                msaa["factor"] >> superSampling;
             } 
             if (doc.FindValue("RenderMode")) {
-                if(doc["RenderMode"] == "zbuffer") scene->options.mode = RenderMode::DEPTH;
-                if(doc["RenderMode"] == "normal") scene->options.mode = RenderMode::NORMAL;
-                if(doc["RenderMode"] == "phong") scene->options.mode = RenderMode::PHONG;
+                if(doc["RenderMode"] == "zbuffer") mode = RenderMode::DEPTH;
+                if(doc["RenderMode"] == "normal") mode = RenderMode::NORMAL;
+                if(doc["RenderMode"] == "phong") mode = RenderMode::PHONG;
             }
 
-            // Read and parse the scene objects
-            const YAML::Node& sceneObjects = doc["Objects"];
-            if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
-                std::cerr << "Error: expected a sequence of objects." << std::endl;
-                return false;
-            }
-            for(YAML::Iterator it=sceneObjects.begin(); it!=sceneObjects.end(); ++it) {
-                std::unique_ptr<Object> obj = parseObject(*it);
-                // Only add object if it is recognized
-                if (obj) {
-                    scene->objects.push_back(std::move(obj));
-                } else {
-                    std::cerr << "Warning: found object of unknown type, ignored." << std::endl;
-                }
-            }
-
-            // Read and parse light definitions
-            const YAML::Node& sceneLights = doc["Lights"];
-            if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
-                std::cerr << "Error: expected a sequence of lights." << std::endl;
-                return false;
-            }
-            for(YAML::Iterator it=sceneLights.begin();it!=sceneLights.end();++it) {
-                scene->lights.push_back(parseLight(*it));
-            }
         }
         if (parser) {
             std::cerr << "Warning: unexpected YAML document, ignored." << std::endl;
@@ -204,17 +272,5 @@ bool Raytracer::readScene(const std::string& inputFilename)
         std::cerr << "Error at line " << e.mark.line + 1 << ", col " << e.mark.column + 1 << ": " << e.msg << std::endl;
         return false;
     }
-
-    std::cout << "YAML parsing results: " << scene->objects.size() << " objects read." << std::endl;
     return true;
-}
-
-void Raytracer::renderToFile(const std::string& outputFilename)
-{
-    Image img(400, 400);
-    std::cout << "Tracing..." << std::endl;
-    scene->render(img);
-    std::cout << "Writing image to " << outputFilename << "..." << std::endl;
-    img.writePng(outputFilename.c_str());
-    std::cout << "Done." << std::endl;
 }

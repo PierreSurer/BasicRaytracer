@@ -1,5 +1,6 @@
 #include "Material.hpp"
 #include "ParseObj.hpp"
+#include "Scene.hpp"
 #include "Raytracer.hpp"
 
 int main(int argc, char *argv[])
@@ -10,9 +11,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    Raytracer raytracer;
+    std::shared_ptr<Scene> scene = std::make_shared<Scene>();
+    Raytracer raytracer(scene);
 
-    if (!raytracer.readScene(argv[1])) {
+    std::cout << "Parsing..." << std::endl;
+    if (!scene->readScene(argv[1]) || !raytracer.readParameters(argv[1])) {
         std::cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< std::endl;
         return 1;
     }
@@ -27,7 +30,13 @@ int main(int argc, char *argv[])
         }
         ofname += ".png";
     }
-    raytracer.renderToFile(ofname);
+
+    Image img(400, 400);
+    std::cout << "Tracing..." << std::endl;
+    raytracer.render(img);
+    std::cout << "Writing image to " << ofname << "..." << std::endl;
+    img.writePng(ofname.c_str());
+    std::cout << "Done." << std::endl;
 
     return 0;
 }

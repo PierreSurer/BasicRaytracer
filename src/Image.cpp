@@ -10,7 +10,7 @@ bool Image::setSize(int width, int height)
     _width = width;
     _height = height;
     if (_pixel) delete[] _pixel;
-    _pixel = size() > 0 ? new Color[size()] : 0;
+    _pixel = size() > 0 ? new Color[size()]() : 0;
     return _pixel != 0;
 }
 
