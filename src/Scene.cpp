@@ -142,7 +142,7 @@ bool Scene::readScene(const std::string& inputFilename)
 {
     // extract assets directory name from inputFilename
     // TODO: this is quick and unsafe
-    // assetsDir = inputFilename.substr(inputFilename.find_last_of("/\\") + 1); //TODO Mathis will fix this :)))))))
+    assetsDir = inputFilename.substr(0, inputFilename.find_last_of("/\\") + 1); //TODO Mathis will fix this :)))))))
 
     // Open file stream for reading and have the YAML module parse it
     std::ifstream fin(inputFilename.c_str());
