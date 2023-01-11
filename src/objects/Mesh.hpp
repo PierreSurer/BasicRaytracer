@@ -19,7 +19,6 @@ public:
 
     Hit intersect(const Ray &ray) const;
 
-
     class Triangle: public Object
     {
     public:
@@ -48,8 +47,15 @@ public:
     };
 
 private:
-    void compute_aabb();
+    // recompute the acceleration structure
+    void compute_aabb() const;
+    bool intersect_aabb(const Ray& ray) const;
 
     std::vector<Triangle> faces;
-    Box aabb;
+
+    // acceleration structures
+    // (marked mutable as this is opaque from outsider's perspective)
+    using AABB = std::pair<glm::dvec3, glm::dvec3>;
+    mutable bool dirty = true;
+    mutable AABB aabb;
 };

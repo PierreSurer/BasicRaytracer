@@ -20,7 +20,6 @@ file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/yaml/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/objects/*.cpp
-  # TODO include vulkan
 )
 
 # Add header files
@@ -28,7 +27,6 @@ file(GLOB HEADER_FILES
 	${CMAKE_SOURCE_DIR}/src/*.h
 	${CMAKE_SOURCE_DIR}/src/*.hpp
     ${CMAKE_SOURCE_DIR}/src/objects/*.hpp
-    # TODO include vulkan
 )
 
 # Define the include DIRs
