@@ -3,8 +3,12 @@
 #include "Scene.hpp"
 #include "Raytracer.hpp"
 
+#include <chrono>
+
 int main(int argc, char *argv[])
 {
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::duration<double, std::milli> elapsed_time;
     std::cout << "Introduction to Computer Graphics - Raytracer" << std::endl << std::endl;
     if (argc < 2 || argc > 3) {
         std::cerr << "Usage: " << argv[0] << " in-file [out-file.png]" << std::endl;
@@ -14,11 +18,15 @@ int main(int argc, char *argv[])
     std::shared_ptr<Scene> scene = std::make_shared<Scene>();
     Raytracer raytracer(scene);
 
-    std::cout << "Parsing..." << std::endl;
+    start = std::chrono::system_clock::now();
+    std::cout << "Parsing... ";
     if (!scene->readScene(argv[1]) || !raytracer.readParameters(argv[1])) {
         std::cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< std::endl;
         return 1;
     }
+    end = std::chrono::system_clock::now();
+    elapsed_time = end - start;
+    std::cout << (elapsed_time.count() / 1000.0) << "s" << std::endl;
 
     std::string ofname;
     if (argc>=3) {
@@ -32,10 +40,21 @@ int main(int argc, char *argv[])
     }
 
     Image img(400, 400);
-    std::cout << "Tracing..." << std::endl;
+
+    start = std::chrono::system_clock::now();
+    std::cout << "Tracing... ";
     raytracer.render(img);
-    std::cout << "Writing image to " << ofname << "..." << std::endl;
+    end = std::chrono::system_clock::now();
+    elapsed_time = end - start;
+    std::cout << (elapsed_time.count() / 1000.0) << "s" << std::endl;
+
+    start = std::chrono::system_clock::now();
+    std::cout << "Writing image to " << ofname << "... ";
     img.writePng(ofname.c_str());
+    end = std::chrono::system_clock::now();
+    elapsed_time = end - start;
+    std::cout << (elapsed_time.count() / 1000.0) << "s" << std::endl;
+
     std::cout << "Done." << std::endl;
 
     return 0;

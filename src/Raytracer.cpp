@@ -182,8 +182,8 @@ Color Raytracer::traceNormals(const Ray &ray)
 void Raytracer::render(Image &img)
 {
     int msaa = superSampling;
-    int64_t w = img.width() * msaa;
-    int64_t h = img.height() * msaa;
+    int64_t w = img.width();
+    int64_t h = img.height();
 
     // build a set of camera axes (right-hand rule, look in z-negative direction)
     glm::dvec3 cam_z = scene->camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0); // -view_direction
@@ -195,39 +195,39 @@ void Raytracer::render(Image &img)
 
     double msaa_factor = 1.0 / (msaa * msaa);
 
-    #pragma omp parallel for schedule(static, msaa * msaa * 64)
+    #pragma omp parallel for schedule(static, 64)
     for (int64_t i = 0; i < w * h; i++) {
+        Color finalColor = {};
+        int64_t px = i % w;            // pixel x coordinate
+        int64_t py = i / h;            // pixel y coordinate
 
-        // compute the sample x and y coordinates. work in blocks of msaa * msaa samples
-        // to avoid write conflicts in the parallel for.
-        int64_t pi = i / (msaa * msaa);           // pixel index
-        int64_t po = i % (msaa * msaa);           // sample offset in pixel
-        int64_t px = pi % img.width();            // pixel x coordinate
-        int64_t py = pi / img.width();            // pixel y coordinate
-        int64_t x = (px * msaa) + (po % msaa);
-        int64_t y = (py * msaa) + (po / msaa);
-        
-        double dx = x - w / 2.0 + 0.5;
-        double dy = (h - y - 1) - h / 2.0 + 0.5;
-        glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
-        Color col;
-        Ray ray(scene->camera.getPosition(), dir);
-        switch (mode)
-        {
-        case RenderMode::PHONG:
-            col = traceColor(ray);
-            break;
-        case RenderMode::DEPTH:
-            col = traceDepth(ray, -cam_z, scene->camera.near, scene->camera.far);
-            break;
-        case RenderMode::NORMAL:
-            col = traceNormals(ray);
-            break;
-        default:
-            throw std::runtime_error("No render type matched");
-        } 
-        col = clamp(col, 0.0, 1.0);
-        img(px, py) += col * msaa_factor;
+        for(int64_t j = 0; j < msaa * msaa; j++) {
+            int64_t x = px + (j % msaa);
+            int64_t y = py + (j / msaa);
+            
+            double dx = x - w / 2.0 + 0.5;
+            double dy = (h - y - 1) - h / 2.0 + 0.5;
+            glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
+            Color col;
+            Ray ray(scene->camera.getPosition(), dir);
+            switch (mode)
+            {
+            case RenderMode::PHONG:
+                col = traceColor(ray);
+                break;
+            case RenderMode::DEPTH:
+                col = traceDepth(ray, -cam_z, scene->camera.near, scene->camera.far);
+                break;
+            case RenderMode::NORMAL:
+                col = traceNormals(ray);
+                break;
+            default:
+                throw std::runtime_error("No render type matched");
+            } 
+            col = clamp(col, 0.0, 1.0);
+            finalColor += col * msaa_factor;
+        }
+        img(px, py) = finalColor;
     }
 }
 

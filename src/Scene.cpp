@@ -201,6 +201,6 @@ bool Scene::readScene(const std::string& inputFilename)
         return false;
     }
 
-    std::cout << "YAML parsing results: " << objects.size() << " objects read." << std::endl;
+    std::cout << "YAML parsing results: " << objects.size() << " objects read - " ;
     return true;
 }
