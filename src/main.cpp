@@ -4,6 +4,42 @@
 #include "Raytracer.hpp"
 
 #include <chrono>
+#include <glfw/glfw3.h>
+#include <thread>
+
+const int IMAGE_WIDTH = 400, IMAGE_HEIGHT = 400;
+const float WINDOW_ZOOM = 2.0f;
+
+void render_loop(Image* img) {
+    GLFWwindow* window;
+
+    /* Initialize the library */
+    if (!glfwInit())
+        return;
+
+    window = glfwCreateWindow((int)(IMAGE_WIDTH * WINDOW_ZOOM), (int)(IMAGE_HEIGHT * WINDOW_ZOOM), "Raytracer", NULL, NULL);
+    if (!window)
+    {
+        glfwTerminate();
+        return;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    glRasterPos2f(-1,1);
+    glPixelZoom(WINDOW_ZOOM, -WINDOW_ZOOM );
+    while (!glfwWindowShouldClose(window))
+    {
+        glDrawPixels(IMAGE_WIDTH, IMAGE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, img->getPixels().data());
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    free(window);
+    glfwTerminate();
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +75,10 @@ int main(int argc, char *argv[])
         ofname += ".png";
     }
 
-    Image img(400, 400);
+    Image img(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    std::thread render_thread(render_loop, &img);
+    render_thread.detach();
 
     start = std::chrono::system_clock::now();
     std::cout << "Tracing... ";

@@ -45,5 +45,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDES})
 # setup openmp
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/deps/glfw")
+find_package(OpenGL REQUIRED)
+target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL)

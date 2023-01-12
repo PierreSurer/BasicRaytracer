@@ -195,18 +195,18 @@ void Raytracer::render(Image &img)
 
     double msaa_factor = 1.0 / (msaa * msaa);
 
-    #pragma omp parallel for schedule(static, 64)
+    #pragma omp parallel for schedule(dynamic, 64)
     for (int64_t i = 0; i < w * h; i++) {
         Color finalColor = {};
         int64_t px = i % w;            // pixel x coordinate
         int64_t py = i / h;            // pixel y coordinate
 
         for(int64_t j = 0; j < msaa * msaa; j++) {
-            int64_t x = px + (j % msaa);
-            int64_t y = py + (j / msaa);
+            int64_t x = j % msaa;
+            int64_t y = j / msaa;
             
-            double dx = x - w / 2.0 + 0.5;
-            double dy = (h - y - 1) - h / 2.0 + 0.5;
+            double dx = px - w / 2.0 + (1.0 + x)/(msaa * 2.0);
+            double dy = (h - py - 1) - h / 2.0 + (1.0 + y)/(msaa * 2.0);
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
             Color col;
             Ray ray(scene->camera.getPosition(), dir);
@@ -227,7 +227,10 @@ void Raytracer::render(Image &img)
             col = clamp(col, 0.0, 1.0);
             finalColor += col * msaa_factor;
         }
-        img(px, py) = finalColor;
+        img.putPixel(px, py, 0, (unsigned char)(finalColor.r * 255.0));
+        img.putPixel(px, py, 1, (unsigned char)(finalColor.g * 255.0));
+        img.putPixel(px, py, 2, (unsigned char)(finalColor.b * 255.0));
+        img.putPixel(px, py, 3, 255);
     }
 }
 
