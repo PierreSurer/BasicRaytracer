@@ -113,6 +113,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node)
         fname = assetsDir + fname;
         Mesh mesh = parseObj(fname);
         mesh.transform(mat);
+        mesh.optimize();
         returnObject = std::make_unique<Mesh>(std::move(mesh));
     }
 

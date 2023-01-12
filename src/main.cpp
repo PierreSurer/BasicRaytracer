@@ -4,11 +4,11 @@
 #include "Raytracer.hpp"
 
 #include <chrono>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <thread>
 
-const int IMAGE_WIDTH = 400, IMAGE_HEIGHT = 400;
-const float WINDOW_ZOOM = 2.0f;
+const int IMAGE_WIDTH = 1600, IMAGE_HEIGHT = 1600;
+const float WINDOW_ZOOM = 0.5f;
 
 void render_loop(Image* img) {
     GLFWwindow* window;
@@ -36,7 +36,6 @@ void render_loop(Image* img) {
         glfwPollEvents();
     }
 
-    free(window);
     glfwTerminate();
 }
 
