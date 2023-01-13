@@ -53,7 +53,7 @@ Hit Cylinder::intersect(const Ray &ray) const
     }
 }
 
-AABB Cylinder::getAABB() const{
+AABB Cylinder::computeAABB() const {
     AABB aabb;
     return aabb;
 }

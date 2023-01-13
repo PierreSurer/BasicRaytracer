@@ -34,7 +34,9 @@ public:
         std::unique_ptr<BVH> left, right;
     };
     
-    AABB getAABB() const override;
+protected:
+    AABB computeAABB() const override;
+
 private:
     
     BVH compute_bvh() const;
@@ -59,6 +61,8 @@ public:
     void transform(const glm::dmat4& mat, const glm::dmat4& norm_mat);
 
     Hit intersect(const Ray &ray) const override;
+
+    AABB computeAABB() const override;
 
     glm::dvec3 p1, p2, p3;
     glm::dvec3 n1, n2, n3;

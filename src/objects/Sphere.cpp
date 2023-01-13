@@ -34,7 +34,7 @@ Hit Sphere::intersect(const Ray &ray) const
     return Hit(t, N);
 }
 
-AABB Sphere::getAABB() const{
+AABB Sphere::computeAABB() const {
     AABB aabb;
     aabb.first = position - r;
     aabb.second = position + r;

@@ -12,7 +12,8 @@ public:
 
     Hit intersect(const Ray &ray) const override;
 
-    AABB getAABB() const override;
+protected:
+    AABB computeAABB() const override;
 
 private:
     const glm::dvec3 v1, v2, v3;

@@ -30,7 +30,7 @@ static bool intersect_aabb(const AABB& aabb, const Ray& ray) {
     return (tNear <= tFar && tNear >= 0.0);
 }
 
-AABB Mesh::getAABB() const {
+AABB Mesh::computeAABB() const {
     AABB aabb;
     aabb.first = faces.size() ? faces[0].p1 : dvec3(0.0);
     aabb.second = aabb.first;
@@ -57,10 +57,10 @@ static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector
     // recursion termination if triangle threshold is reach
     if (indices.size() < BVH_THRESHOLD) {
         return Mesh::BVH {
-            .aabb = aabb,
-            .indices = indices,
-            .left = nullptr,
-            .right = nullptr,
+            aabb,
+            indices,
+            nullptr, // left
+            nullptr, // right
         };
     }
 
@@ -80,10 +80,10 @@ static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector
 
     // recursive call
     return Mesh::BVH {
-        .aabb = aabb,
-        .indices = indices,
-        .left = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_left)),
-        .right = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_right))
+        aabb,
+        indices,
+        std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_left)),
+        std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_right))
     };
 }
 
@@ -113,7 +113,7 @@ Mesh::Mesh(std::vector<Triangle> faces)
 { }
 
 Mesh::Mesh(std::vector<Triangle> faces, const glm::dmat4& mat)
-    : Mesh(faces)
+    : Mesh(std::move(faces))
 {
     transform(mat);
 }
@@ -261,4 +261,12 @@ Hit Mesh::Triangle::intersect(const Ray &ray) const
     // norm = N;
 
     return Hit(t, norm);
+}
+
+AABB Mesh::Triangle::computeAABB() const {
+    AABB aabb;
+    aabb.first = min(p1, p2, p3);
+    aabb.second = max(p1, p2, p3);
+
+    return aabb;
 }

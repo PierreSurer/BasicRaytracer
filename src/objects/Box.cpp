@@ -36,7 +36,7 @@ Hit Box::intersect(const Ray &ray) const
     return Hit(tNear, orientation * N);
 }
 
-AABB Box::getAABB() const{
+AABB Box::computeAABB() const {
     AABB aabb;
     dvec3 s0 = orientation * dvec3(size.x / 2.0, size.x / 2.0, size.x / 2.0);
     dvec3 s1 = orientation * dvec3(size.x / 2.0, size.x / 2.0, -size.x / 2.0);

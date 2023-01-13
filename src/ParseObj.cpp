@@ -64,5 +64,5 @@ Mesh parseObj(const std::string &filename)
     }
   }
 
-  return Mesh(faces);
+  return Mesh(std::move(faces));
 }
