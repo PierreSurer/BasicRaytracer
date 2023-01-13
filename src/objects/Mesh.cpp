@@ -28,7 +28,7 @@ static bool intersect_aabb(const AABB& aabb, const Ray& ray) {
     return (tNear <= tFar && tNear >= 0.0);
 }
 
-AABB Mesh::compute_aabb() const {
+AABB Mesh::getAABB() const {
     AABB aabb;
     aabb.first = faces.size() ? faces[0].p1 : dvec3(0.0);
     aabb.second = aabb.first;

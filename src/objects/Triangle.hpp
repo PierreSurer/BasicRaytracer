@@ -5,10 +5,16 @@
 class Triangle : public Object
 {
 public:
-    Triangle(glm::dvec3 p1, glm::dvec3 p2, glm::dvec3 p3) : p1(p1), p2(p2), p3(p3) { }
+    // flat shaded
+    Triangle(glm::dvec3 v1, glm::dvec3 v2, glm::dvec3 v3);
+    // custom normals per triangle (e.g. smooth shaded)
+    Triangle(glm::dvec3 v1, glm::dvec3 v2, glm::dvec3 v3, glm::dvec3 n1, glm::dvec3 n2, glm::dvec3 n3);
 
     Hit intersect(const Ray &ray) const override;
 
-    // p1, p2, p3 must be in counter-clockwise order when looking at the visible side.
-    const glm::dvec3 p1, p2, p3;
+    AABB getAABB() const override;
+
+private:
+    const glm::dvec3 v1, v2, v3;
+    glm::dvec3 n1, n2, n3;
 };

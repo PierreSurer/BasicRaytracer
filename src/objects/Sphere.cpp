@@ -3,6 +3,12 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
+Sphere::Sphere(glm::dvec3 position, double r)
+    : position(position), r(r) 
+{
+
+}
+
 Hit Sphere::intersect(const Ray &ray) const
 {
     glm::dvec3 OC = position - ray.O;
@@ -26,4 +32,12 @@ Hit Sphere::intersect(const Ray &ray) const
     glm::dvec3 N = (intersectionPoint - position) / r;
 
     return Hit(t, N);
+}
+
+AABB Sphere::getAABB() const{
+    AABB aabb;
+    aabb.first = position - r;
+    aabb.second = position + r;
+
+    return aabb;
 }

@@ -2,6 +2,12 @@
 #include <math.h>
 #include <glm/gtx/quaternion.hpp>
 
+Cylinder::Cylinder(glm::dvec3 position, glm::dvec3 rotation, double height, double radius)
+    : position(position), rotation(rotation), height(height), radius(radius)
+{
+
+}
+
 Hit Cylinder::intersect(const Ray &ray) const
 {
     glm::dquat rot = glm::dquat(rotation);
@@ -45,4 +51,9 @@ Hit Cylinder::intersect(const Ray &ray) const
         
         return Hit(t, orientation * N);
     }
+}
+
+AABB Cylinder::getAABB() const{
+    AABB aabb;
+    return aabb;
 }

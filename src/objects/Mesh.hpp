@@ -34,8 +34,9 @@ public:
         std::unique_ptr<BVH> left, right;
     };
     
+    AABB getAABB() const override;
 private:
-    AABB compute_aabb() const;
+    
     BVH compute_bvh() const;
     Hit recurse_intersect(const BVH& bvh, const Ray &ray) const;
     Hit intersect_indices(const std::vector<size_t> indices, const Ray &ray) const;

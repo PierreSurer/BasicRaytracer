@@ -1,16 +1,24 @@
 #include "Box.hpp"
 #include <math.h>
 #include <glm/gtc/quaternion.hpp>
+
+#include <glm/gtx/extended_min_max.hpp>
 #include <glm/gtx/component_wise.hpp>
 
 using namespace glm;
 
+Box::Box(glm::dvec3 position, glm::dvec3 rotation, glm::dvec3 size)
+    : position(position), rotation(rotation), size(size)
+{ 
+    dquat rot = dquat(rotation);
+    orientation = mat3_cast(rot);
+    inv_orientation = inverse(orientation);
+}
+
 Hit Box::intersect(const Ray &ray) const
 {
-    dquat rot = dquat(rotation);
-    dmat3 orientation = mat3_cast(rot);
-    dvec3 localOrigin = inverse(orientation) * (ray.O - position);
-    dvec3 localDirection = inverse(orientation) * ray.D;
+    dvec3 localOrigin = inv_orientation * (ray.O - position);
+    dvec3 localDirection = inv_orientation * ray.D;
 
     dvec3 tMin = ((-size) - localOrigin) / localDirection;
     dvec3 tMax = ((+size) - localOrigin) / localDirection;
@@ -26,4 +34,21 @@ Hit Box::intersect(const Ray &ray) const
     else                   N = {0.0, 0.0, -sign(localDirection.z)};
 
     return Hit(tNear, orientation * N);
+}
+
+AABB Box::getAABB() const{
+    AABB aabb;
+    dvec3 s0 = orientation * dvec3(size.x / 2.0, size.x / 2.0, size.x / 2.0);
+    dvec3 s1 = orientation * dvec3(size.x / 2.0, size.x / 2.0, -size.x / 2.0);
+    dvec3 s2 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, size.x / 2.0);
+    dvec3 s3 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
+    dvec3 s4 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, size.x / 2.0);
+    dvec3 s5 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, -size.x / 2.0);
+    dvec3 s6 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, size.x / 2.0);
+    dvec3 s7 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
+
+    aabb.first = position + glm::min(glm::min(s0, s1, s2, s3), glm::min(s4, s5, s6, s7));
+    aabb.second = position + glm::max(glm::max(s0, s1, s2, s3), glm::max(s4, s5, s6, s7));
+
+    return aabb;
 }

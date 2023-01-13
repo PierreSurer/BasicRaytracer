@@ -194,6 +194,7 @@ void Raytracer::render(Image &img)
     double dz = (h - 1) / (2.0 * tan(radians(scene->camera.fov) / 2.0));
 
     double msaa_factor = 1.0 / (msaa * msaa);
+    const double offset = 1.0 / (msaa * 2.0);
 
     #pragma omp parallel for schedule(dynamic, 64)
     for (int64_t i = 0; i < w * h; i++) {
@@ -201,12 +202,15 @@ void Raytracer::render(Image &img)
         int64_t px = i % w;            // pixel x coordinate
         int64_t py = i / h;            // pixel y coordinate
 
+        double dx = px - w / 2.0;
+        double dy = (h - py - 1) - h / 2.0;
+
         for(int64_t j = 0; j < msaa * msaa; j++) {
             int64_t x = j % msaa;
             int64_t y = j / msaa;
             
-            double dx = px - w / 2.0 + (1.0 + x)/(msaa * 2.0);
-            double dy = (h - py - 1) - h / 2.0 + (1.0 + y)/(msaa * 2.0);
+            dx += (1.0 + 2.0 * x) * offset;
+            dy += (1.0 + 2.0 * y) * offset;
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
             Color col;
             Ray ray(scene->camera.getPosition(), dir);
