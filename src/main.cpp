@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <thread>
 
-const int IMAGE_WIDTH = 1600, IMAGE_HEIGHT = 1600;
+const int IMAGE_WIDTH = 800, IMAGE_HEIGHT = 800;
 const float WINDOW_ZOOM = 0.5f;
 
 void render_loop(Image* img) {

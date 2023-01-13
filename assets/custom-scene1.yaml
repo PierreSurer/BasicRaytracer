@@ -13,7 +13,7 @@
 #  it should be clear that the #-character can be used to insert comments.
 
 SuperSampling:
-  factor: 2
+  factor: 1
 
 Camera:
   eye: [0, 0, 500]

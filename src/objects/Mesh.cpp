@@ -3,6 +3,8 @@
 #include <numeric>
 #include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/extended_min_max.hpp>
+#include <glm/gtx/associated_min_max.hpp>
+
 
 using namespace glm;
 
@@ -42,9 +44,9 @@ AABB Mesh::getAABB() const {
 }
 
 // min number of triangles to perform a bvh split
-static constexpr const auto BVH_THRESHOLD = 4;
+static constexpr const auto BVH_THRESHOLD = 32; // value empirically measured as optimal
 
-static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector<size_t> indices, int dim) {
+static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector<size_t> indices) {
     // compute the global aabb
     AABB aabb = indices.size() ? aabbs[0] : AABB{};
     for (auto i: indices) {
@@ -61,6 +63,10 @@ static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector
             .right = nullptr,
         };
     }
+
+    // best dimension to perform the split
+    auto size = aabb.second - aabb.first;
+    auto dim = associatedMax(size.x, 0, size.y, 1, size.z, 2);
     
     // sort triangles along an axis
     std::sort(indices.begin(), indices.end(), [&](const auto& a, const auto& b) {
@@ -73,12 +79,11 @@ static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector
     auto id_right = std::vector(indices.begin() + half_index, indices.end());
 
     // recursive call
-    dim = (dim + 1) % 3;
     return Mesh::BVH {
         .aabb = aabb,
         .indices = indices,
-        .left = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_left, dim)),
-        .right = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_right, dim))
+        .left = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_left)),
+        .right = std::make_unique<Mesh::BVH>(recurse_compute_bvh(aabbs, id_right))
     };
 }
 
@@ -95,7 +100,7 @@ Mesh::BVH Mesh::compute_bvh() const {
 
     std::iota(indices.begin(), indices.end(), 0);
 
-    return recurse_compute_bvh(aabbs, indices, 0);
+    return recurse_compute_bvh(aabbs, indices);
 }
 
 void Mesh::optimize() {
@@ -134,6 +139,21 @@ Hit Mesh::intersect(const Ray& ray) const
     // use the acceleration structure
     return recurse_intersect(bvh, ray);
 
+    // just use the aabb
+    // Hit min_hit = Hit::NO_HIT();
+
+    // if (!intersect_aabb(bvh.aabb, ray)) {
+    //     return min_hit;
+    // }
+
+    // for (const auto& face : faces) {
+    //     Hit hit = face.intersect(ray);
+    //     if (hit.t < min_hit.t) {
+    //         min_hit = hit;
+    //     }
+    // }
+
+    // return min_hit;
 }
 
 Hit Mesh::recurse_intersect(const BVH& bvh, const Ray& ray) const {
