@@ -12,10 +12,15 @@ public:
 
     Hit intersect(const Ray &ray) const override;
 
+    // apply a transform matrix to the vertices and normals
+    void transform(const glm::dmat4& mat);
+    void transform(const glm::dmat4& mat, const glm::dmat4& norm_mat);
+
 protected:
     AABB computeAABB() const override;
 
 private:
-    const glm::dvec3 v1, v2, v3;
-    glm::dvec3 n1, n2, n3;
+    friend class Mesh;
+    glm::dvec3 v1, v2, v3;
+    glm::dvec3 n1, n2, n3, N;
 };

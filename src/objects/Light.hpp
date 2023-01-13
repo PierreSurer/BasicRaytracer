@@ -39,7 +39,7 @@ public:
     glm::dvec3 N;
     bool no_hit;
     
-    Hit(const double t, const glm::dvec3 &normal, bool nohit = false)
+    Hit(const double t, glm::dvec3 normal, bool nohit = false)
         : t(t), N(normal), no_hit(nohit)
     { }
 

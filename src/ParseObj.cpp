@@ -9,7 +9,7 @@ using namespace glm;
 Mesh parseObj(const std::string &filename)
 {
   std::vector<dvec3> verts, texCoords, normals;
-  std::vector<Mesh::Triangle> faces;
+  std::vector<Triangle> faces;
 
   const std::regex face_desc(
     "^f (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+)"
