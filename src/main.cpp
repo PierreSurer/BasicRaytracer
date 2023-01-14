@@ -51,12 +51,13 @@ int main(int argc, char *argv[])
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double, std::milli> elapsed_time;
-    std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-    Raytracer raytracer(scene);
+    Scene scene;
+    TraceParameters params;
+    Raytracer raytracer;
 
     std::cout << "Parsing... ";
     start = std::chrono::system_clock::now();
-    if (!scene->readScene(argv[1]) || !raytracer.readParameters(argv[1])) {
+    if (!scene.readScene(argv[1])) {
         std::cerr << "Error: reading scene from " << argv[1] << " failed - no output generated."<< std::endl;
         return 1;
     }
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Tracing... ";
     start = std::chrono::system_clock::now();
-    raytracer.render(img);
+    raytracer.render(scene, img);
     end = std::chrono::system_clock::now();
     elapsed_time = end - start;
     std::cout << (elapsed_time.count() / 1000.0) << "s" << std::endl;
