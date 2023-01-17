@@ -9,16 +9,14 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
-Raytracer::Raytracer(std::shared_ptr<Scene> scene) : scene(scene) {
-
-}
-
-Color Raytracer::traceColor(const Ray &ray, TraceState state)
+Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state)
 {
+    const TraceParameters &params = scene.params;
+
     // Find hit object and distance
     Hit hit = Hit::NO_HIT();
     Object *obj = nullptr;
-    for (const auto &o : scene->objects) {
+    for (const auto &o : scene.objects) {
         Hit thisHit = o->intersect(ray);
         if (thisHit.t < hit.t) {
             hit = thisHit;
@@ -36,15 +34,15 @@ Color Raytracer::traceColor(const Ray &ray, TraceState state)
     Color color(0.0, 0.0, 0.0);
     color += mat->color * mat->ka;
 
-    for (auto const& light : scene->lights) {
+    for (auto const& light : scene.lights) {
 
         dvec3 lightVector = light->position - hitPoint; // Not normalized as we need magnitude
         dvec3 lightDir = normalize(lightVector);
         bool inShadow = false;
 
-        if (shadows) {
+        if (params.shadows) {
             Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
-            for (const auto &o : scene->objects) {
+            for (const auto &o : scene.objects) {
                 Hit shadowHit = o->intersect(shadowRay);
                 if(shadowHit.t <= length(lightVector)) {
                     inShadow = true;
@@ -79,18 +77,18 @@ Color Raytracer::traceColor(const Ray &ray, TraceState state)
 
     // reflection
     Color reflectionColor(0);
-    if (state.bounces < maxBounces && mat->ks * state.reflectionFactor > reflectionTheshold) {
+    if (state.bounces < params.maxBounces && mat->ks * state.reflectionFactor > params.reflectionTheshold) {
         TraceState nextState(state);
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hit.N);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
-        reflectionColor = traceColor(reflectionRay, nextState) * mat->ks;
+        reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
     
     // refraction
     Color refractionColor(0);
-    if (state.bounces < maxBounces && mat->ior > 1.0) {
+    if (state.bounces < params.maxBounces && mat->ior > 1.0) {
         dvec3 refractionDir = refract(ray.D, hit.N, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
             Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
@@ -102,7 +100,7 @@ Color Raytracer::traceColor(const Ray &ray, TraceState state)
             TraceState nextState(state);
             nextState.bounces++;
             if(refractionDir != dvec3(0.0))
-                refractionColor = traceColor(refractionRay, nextState);
+                refractionColor = traceColor(scene, refractionRay, nextState);
         }
     }
 
@@ -138,13 +136,13 @@ Color Raytracer::traceColor(const Ray &ray, TraceState state)
     return color;
 }
 
-Color Raytracer::traceDepth(const Ray &ray, const dvec3 &axis, double near, double far)
+Color Raytracer::traceDepth(const Scene &scene, const Ray &ray, const dvec3 &axis, double near, double far)
 {
     Ray newRay(ray.at(near), ray.D);
 
     // Find hit object and distance
     Hit min_hit = Hit::NO_HIT();
-    for (const auto &obj : scene->objects) {
+    for (const auto &obj : scene.objects) {
         Hit hit = obj->intersect(ray);
         if (hit.t < min_hit.t) {
             min_hit = hit;
@@ -160,11 +158,11 @@ Color Raytracer::traceDepth(const Ray &ray, const dvec3 &axis, double near, doub
     return color;
 }
 
-Color Raytracer::traceNormals(const Ray &ray)
+Color Raytracer::traceNormals(const Scene &scene, const Ray &ray)
 {
     // Find hit object and distance
     Hit min_hit = Hit::NO_HIT();
-    for (const auto &obj : scene->objects) {
+    for (const auto &obj : scene.objects) {
         Hit hit = obj->intersect(ray);
         if (hit.t < min_hit.t) {
             min_hit = hit;
@@ -179,19 +177,20 @@ Color Raytracer::traceNormals(const Ray &ray)
     return Color(1.0 + N) * 0.5;
 }
 
-void Raytracer::render(Image &img)
+void Raytracer::render(const Scene &scene, Image& img)
 {
-    int msaa = superSampling;
+    const TraceParameters &params = scene.params;
+    int msaa = params.superSampling;
     int64_t w = img.width();
     int64_t h = img.height();
 
     // build a set of camera axes (right-hand rule, look in z-negative direction)
-    glm::dvec3 cam_z = scene->camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0); // -view_direction
-    glm::dvec3 cam_x = scene->camera.getRotationMat() * glm::dvec4(1.0, 0.0, 0.0, 0.0);
+    glm::dvec3 cam_z = scene.camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0); // -view_direction
+    glm::dvec3 cam_x = scene.camera.getRotationMat() * glm::dvec4(1.0, 0.0, 0.0, 0.0);
     glm::dvec3 cam_y = cross(cam_z, cam_x);
 
     // distance of the focal plane
-    double dz = (h - 1) / (2.0 * tan(radians(scene->camera.fov) / 2.0));
+    double dz = (h - 1) / (2.0 * tan(radians(scene.camera.fov) / 2.0));
 
     double msaa_factor = 1.0 / (msaa * msaa);
     const double offset = 1.0 / (msaa * 2.0);
@@ -213,17 +212,17 @@ void Raytracer::render(Image &img)
             double pyy = dy + (1.0 + 2.0 * y) * offset;
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
             Color col;
-            Ray ray(scene->camera.getPosition(), dir);
-            switch (mode)
+            Ray ray(scene.camera.getPosition(), dir);
+            switch (params.mode)
             {
             case RenderMode::PHONG:
-                col = traceColor(ray);
+                col = traceColor(scene, ray);
                 break;
             case RenderMode::DEPTH:
-                col = traceDepth(ray, -cam_z, scene->camera.near, scene->camera.far);
+                col = traceDepth(scene, ray, -cam_z, scene.camera.near, scene.camera.far);
                 break;
             case RenderMode::NORMAL:
-                col = traceNormals(ray);
+                col = traceNormals(scene, ray);
                 break;
             default:
                 throw std::runtime_error("No render type matched");
@@ -238,46 +237,3 @@ void Raytracer::render(Image &img)
     }
 }
 
-bool Raytracer::readParameters(const std::string& inputFilename) {
-
-    // Open file stream for reading and have the YAML module parse it
-    std::ifstream fin(inputFilename.c_str());
-    if (!fin) {
-        std::cerr << "Error: unable to open " << inputFilename << " for reading parameters." << std::endl;;
-        return false;
-    }
-    try {
-        YAML::Parser parser(fin);
-        if (parser) {
-            YAML::Node doc;
-            parser.GetNextDocument(doc);
-            const YAML::Node& cam = doc["Camera"];
-
-            if (doc.FindValue("Shadows")) doc["Shadows"] >> shadows;
-            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> maxBounces;
-            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> reflectionTheshold;
-
-            if (cam.FindValue("fov")) cam["fov"] >> scene->camera.fov;
-            if (doc.FindValue("Shadows")) doc["Shadows"] >> shadows;
-            if (doc.FindValue("MaxRecursionDepth")) doc["MaxRecursionDepth"] >> maxBounces;
-            if (doc.FindValue("RecursionThreshold")) doc["RecursionThreshold"] >> reflectionTheshold;
-            if (doc.FindValue("SuperSampling")) {
-                const YAML::Node& msaa = doc["SuperSampling"];
-                msaa["factor"] >> superSampling;
-            } 
-            if (doc.FindValue("RenderMode")) {
-                if(doc["RenderMode"] == "zbuffer") mode = RenderMode::DEPTH;
-                if(doc["RenderMode"] == "normal") mode = RenderMode::NORMAL;
-                if(doc["RenderMode"] == "phong") mode = RenderMode::PHONG;
-            }
-
-        }
-        if (parser) {
-            std::cerr << "Warning: unexpected YAML document, ignored." << std::endl;
-        }
-    } catch(YAML::ParserException& e) {
-        std::cerr << "Error at line " << e.mark.line + 1 << ", col " << e.mark.column + 1 << ": " << e.msg << std::endl;
-        return false;
-    }
-    return true;
-}

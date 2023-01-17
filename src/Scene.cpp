@@ -20,10 +20,7 @@
 #include <glm/gtx/euler_angles.hpp>
 
 // Functions to ease reading from YAML input
-void operator >> (const YAML::Node& node, glm::dvec3& v);
-glm::dvec3 parseVector(const YAML::Node& node);
-
-void operator >> (const YAML::Node& node, glm::dvec3& v)
+static void operator >> (const YAML::Node& node, glm::dvec3& v)
 {
     assert(node.size() == 3);
     node[0] >> v.x;
@@ -31,7 +28,7 @@ void operator >> (const YAML::Node& node, glm::dvec3& v)
     node[2] >> v.z;
 }
 
-glm::dvec3 parseVector(const YAML::Node& node)
+static glm::dvec3 parseVector(const YAML::Node& node)
 {
     glm::dvec3 v;
     node[0] >> v.x;
@@ -46,7 +43,7 @@ Scene::Scene(){
 Scene::~Scene() {
 }
 
-std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node)
+std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node) const
 {
     std::unique_ptr<Material> m = std::make_unique<Material>();
     node["color"] >> m->color;
@@ -61,7 +58,7 @@ std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node)
     return m;
 }
 
-std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node)
+std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 {
     std::unique_ptr<Object> returnObject;
     std::string objectType;
@@ -125,7 +122,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node)
     return returnObject;
 }
 
-std::unique_ptr<Light> Scene::parseLight(const YAML::Node& node)
+std::unique_ptr<Light> Scene::parseLight(const YAML::Node& node) const
 {
     glm::dvec3 position;
     Color color;
@@ -134,6 +131,46 @@ std::unique_ptr<Light> Scene::parseLight(const YAML::Node& node)
     return std::make_unique<Light>(position, color);
 }
 
+
+TraceParameters Scene::parseParameters(const YAML::Node& node) const
+{
+    TraceParameters res;
+
+    if (node.FindValue("Shadows")) node["Shadows"] >> res.shadows;
+    if (node.FindValue("MaxRecursionDepth")) node["MaxRecursionDepth"] >> res.maxBounces;
+    if (node.FindValue("RecursionThreshold")) node["RecursionThreshold"] >> res.reflectionTheshold;
+
+    if (node.FindValue("Shadows")) node["Shadows"] >> res.shadows;
+    if (node.FindValue("MaxRecursionDepth")) node["MaxRecursionDepth"] >> res.maxBounces;
+    if (node.FindValue("RecursionThreshold")) node["RecursionThreshold"] >> res.reflectionTheshold;
+    if (node.FindValue("SuperSampling")) {
+        const YAML::Node& msaa = node["SuperSampling"];
+        msaa["factor"] >> res.superSampling;
+    } 
+    if (node.FindValue("RenderMode")) {
+        if(node["RenderMode"] == "zbuffer") res.mode = RenderMode::DEPTH;
+        if(node["RenderMode"] == "normal") res.mode = RenderMode::NORMAL;
+        if(node["RenderMode"] == "phong") res.mode = RenderMode::PHONG;
+    }
+
+    return res;
+}
+
+Camera Scene::parseCamera(const YAML::Node& node) const
+{
+    Camera camera;
+    glm::dvec3 eye, up, target;
+
+    eye = parseVector(node["eye"]);
+    up = parseVector(node["up"]);
+    target = parseVector(node["center"]);
+
+    camera.setPosition(eye);
+    camera.lookAt(eye, target, up);
+    if (node.FindValue("fov")) node["fov"] >> camera.fov;
+
+    return camera;
+}
 
 /*
 * Read a scene from file
@@ -157,16 +194,12 @@ bool Scene::readScene(const std::string& inputFilename)
             YAML::Node doc;
             parser.GetNextDocument(doc);
 
-            // Read scene configuration options
+            // Rad scene parameters
+            params = parseParameters(doc);
+
+            // Read scene camera
             const YAML::Node& cam = doc["Camera"];
-            glm::dvec3 eye, up, target;
-
-            eye = parseVector(cam["eye"]);
-            up = parseVector(cam["up"]);
-            target = parseVector(cam["center"]);
-
-            camera.setPosition(eye);
-            camera.lookAt(eye, target, up);
+            camera = parseCamera(cam);
             
             // Read and parse the scene objects
             const YAML::Node& sceneObjects = doc["Objects"];
