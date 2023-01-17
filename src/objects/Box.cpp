@@ -8,7 +8,7 @@
 using namespace glm;
 
 Box::Box(glm::dvec3 position, glm::dvec3 rotation, glm::dvec3 size)
-    : position(position), rotation(rotation), size(size)
+    : position(position), rotation(rotation), size(size / 2.0)
 { 
     dquat rot = dquat(rotation);
     orientation = mat3_cast(rot);
@@ -26,14 +26,22 @@ Hit Box::intersect(const Ray &ray) const
     dvec3 t2 = max(tMin, tMax);
     double tNear = compMax(t1);
     double tFar = compMin(t2);
-    if(tNear > tFar || tNear < 0.0) return Hit::NO_HIT();
+    if(tNear > tFar || tFar < 0.0) return Hit::NO_HIT();
     
     dvec3 N;
-    if(t1.x == tNear)      N = {-sign(localDirection.x), 0.0, 0.0};
-    else if(t1.y == tNear) N = {0.0, -sign(localDirection.y), 0.0};
-    else                   N = {0.0, 0.0, -sign(localDirection.z)};
+    if(tNear >= 0.0) { // if outside box
+        if(t1.x == tNear)      N = {-sign(localDirection.x), 0.0, 0.0};
+        else if(t1.y == tNear) N = {0.0, -sign(localDirection.y), 0.0};
+        else                   N = {0.0, 0.0, -sign(localDirection.z)};
+        return Hit(tNear, orientation * N);
+    } else {
+        if(t2.x == tFar)       N = {sign(localDirection.x), 0.0, 0.0};
+        else if(t2.y == tFar)  N = {0.0, sign(localDirection.y), 0.0};
+        else                   N = {0.0, 0.0, sign(localDirection.z)};
+        return Hit(tFar, orientation * N);
+    }
 
-    return Hit(tNear, orientation * N);
+    
 }
 
 AABB Box::computeAABB() const {

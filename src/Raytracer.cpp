@@ -28,7 +28,7 @@ Color Raytracer::traceColor(const Ray &ray, TraceState state)
 
     // No hit? Return background color.
     if (hit.no_hit)
-        return Color(0.0, 0.0, 0.0);
+        return (ray.D + 1.0) * 0.5;
 
     auto const& mat = obj->material;       //the hit objects material
     dvec3 hitPoint = ray.at(hit.t);        //the hit point
@@ -209,9 +209,9 @@ void Raytracer::render(Image &img)
             int64_t x = j % msaa;
             int64_t y = j / msaa;
             
-            dx += (1.0 + 2.0 * x) * offset;
-            dy += (1.0 + 2.0 * y) * offset;
-            glm::dvec3 dir = normalize(-cam_z * dz + cam_x * dx + cam_y * dy);
+            double pxx = dx + (1.0 + 2.0 * x) * offset;
+            double pyy = dy + (1.0 + 2.0 * y) * offset;
+            glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
             Color col;
             Ray ray(scene->camera.getPosition(), dir);
             switch (mode)

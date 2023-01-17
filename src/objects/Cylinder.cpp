@@ -2,18 +2,21 @@
 #include <math.h>
 #include <glm/gtx/quaternion.hpp>
 
+
+using namespace glm;
+
 Cylinder::Cylinder(glm::dvec3 position, glm::dvec3 rotation, double height, double radius)
     : position(position), rotation(rotation), height(height), radius(radius)
 {
-
+    dquat rot = dquat(rotation);
+    orientation = mat3_cast(rot);
+    inv_orientation = inverse(orientation);
 }
 
 Hit Cylinder::intersect(const Ray &ray) const
 {
-    glm::dquat rot = glm::dquat(rotation);
-    glm::dmat3 orientation = glm::mat3_cast(rot);
-    glm::dvec3 localOrigin = glm::inverse(orientation) * (ray.O - position);
-    glm::dvec3 localDirection = glm::inverse(orientation) * ray.D;
+    glm::dvec3 localOrigin = inv_orientation * (ray.O - position);
+    glm::dvec3 localDirection = inv_orientation * ray.D;
 
     double a = (localDirection.x * localDirection.x) + (localDirection.z * localDirection.z);
     double b = 2.0 * (localDirection.x * localOrigin.x + localDirection.z * localOrigin.z);
@@ -24,24 +27,29 @@ Hit Cylinder::intersect(const Ray &ray) const
     
     double t1 = (-b - sqrt(delta)) / (2.0 * a);
     double t2 = (-b + sqrt(delta)) / (2.0 * a);
-    double t = std::min(t1, t2);
+    if(t1 > t2) std::swap(t1, t2);
     
-    double r = localOrigin.y + t * localDirection.y;
-    if (abs(r) <= height) {
-        glm::dvec3 pos = localOrigin + t * localDirection;
-        glm::dvec3 N = normalize(glm::dvec3(pos.x, 0.0, pos.z));
-        if (t < 0.0)
+    double r = localOrigin.y + t1 * localDirection.y;
+    if (abs(r) <= height) { //circle intersection
+        if (t2 < 0.0)
             return Hit::NO_HIT();
         else
-            return Hit(t, orientation * N);
+            if(t1 > 0.0) {//outside cylinder
+                glm::dvec3 pos = localOrigin + t1 * localDirection;
+                glm::dvec3 N = normalize(glm::dvec3(pos.x, 0.0, pos.z));
+                return Hit(t1, orientation * N);
+            }
+            else {
+                glm::dvec3 pos = localOrigin + t2 * localDirection;
+                glm::dvec3 N = normalize(glm::dvec3(-pos.x, 0.0, -pos.z));
+                return Hit(t2, orientation * N);
+            }
+            
     }
     else {
-        glm::dvec3 N = normalize(glm::dvec3(0.0, 1.0, 0.0));
-        if(localOrigin.y < 0.0) N = -N;
+        return Hit::NO_HIT();
+        glm::dvec3 N = normalize(glm::dvec3(0.0, -localDirection.y, 0.0));
         double proj = dot(localDirection, N);
-        if (proj > 0.0) { // faces away => is invisible
-            return Hit::NO_HIT();
-        }
         
         // project the ray on the plane surface
         double t = dot(glm::dvec3(0.0, height * N.y, 0.0) - localOrigin, N) / proj;

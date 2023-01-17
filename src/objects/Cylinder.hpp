@@ -18,4 +18,7 @@ private:
     const double height;
     const double radius;
 
+    glm::dmat3 orientation;
+    glm::dmat3 inv_orientation;
+
 };
