@@ -4,9 +4,11 @@
 #include "Raytracer.hpp"
 
 #include <chrono>
-#include <GLFW/glfw3.h>
 #include <thread>
 #include <atomic>
+
+#include <GLFW/glfw3.h>
+#include <CL/cl.hpp>
 
 const int IMAGE_WIDTH = 800, IMAGE_HEIGHT = 800;
 const float WINDOW_ZOOM = 0.5f;
@@ -49,10 +51,28 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // setup opencl
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
+    cl::Platform platform;
+    cl::Device device;
+
+    for (auto p : platforms) {
+        std::vector<cl::Device> devices;
+        p.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+        for (auto d : devices) {
+            // TODO: perform validation of device
+            platform = p;
+            device = d;
+        }
+    }
+
+    std::cout << "Platform: " << platform.getInfo<CL_PLATFORM_NAME>() << ", "
+              << "Device: " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+  
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double, std::milli> elapsed_time;
     Scene scene;
-    TraceParameters params;
     Raytracer raytracer;
 
     std::cout << "Parsing... ";

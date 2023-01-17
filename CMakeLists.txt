@@ -48,6 +48,13 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
 
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/deps/glfw")
+
 find_package(OpenGL REQUIRED)
-target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL)
+
+find_package(OpenCL REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL OpenCL::OpenCL)
