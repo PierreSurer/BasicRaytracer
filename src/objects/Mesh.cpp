@@ -2,6 +2,7 @@
 #include "Triangle.hpp"
 
 #include <algorithm>
+#include <iomanip>
 #include <numeric>
 #include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/extended_min_max.hpp>
@@ -50,8 +51,8 @@ static constexpr const auto BVH_THRESHOLD = 32; // value empirically measured as
 
 static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector<size_t> indices) {
     // compute the global aabb
-    AABB aabb = indices.size() ? aabbs[0] : AABB{};
-    for (auto i: indices) {
+    AABB aabb = indices.size() ? aabbs[indices[0]] : AABB{};
+    for (auto i : indices) {
         aabb.first = min(aabb.first, aabbs[i].first);
         aabb.second = max(aabb.second, aabbs[i].second);
     }
@@ -72,13 +73,34 @@ static Mesh::BVH recurse_compute_bvh(const std::vector<AABB>& aabbs, std::vector
     
     // sort triangles along an axis
     std::sort(indices.begin(), indices.end(), [&](const auto& a, const auto& b) {
-        return aabbs[a].second[dim] < aabbs[b].second[dim];
+        auto ca = (aabbs[a].first[dim] + aabbs[a].second[dim]) / 2;
+        auto cb = (aabbs[b].first[dim] + aabbs[b].second[dim]) / 2;
+        return ca < cb;
     });
 
-    // split the set of triangles in half
-    int half_index = indices.size() / 2;
-    auto id_left = std::vector(indices.begin(), indices.begin() + half_index);
-    auto id_right = std::vector(indices.begin() + half_index, indices.end());
+    // split the set of triangles in two partitions (method 1 or 2)
+    decltype(indices.begin()) half_index;
+
+    // method 1. partition by equal element count
+    {
+        half_index = indices.begin() + indices.size() / 2;
+    }
+
+    // method 2. partition by equal space size
+    {
+        auto center = (aabb.first[dim] + aabb.second[dim]) / 2;
+        half_index = std::find_if(indices.begin(), indices.end(), [&](const auto& i) {
+            auto tri_center = (aabbs[i].first[dim] + aabbs[i].second[dim]) / 2;
+            return tri_center >= center;
+        });
+
+        if (half_index == indices.begin() || half_index == indices.end()) {
+            half_index = indices.begin() + indices.size() / 2;
+        }
+    }
+
+    auto id_left = std::vector(indices.begin(), half_index);
+    auto id_right = std::vector(half_index, indices.end());
 
     // recursive call
     return Mesh::BVH {
