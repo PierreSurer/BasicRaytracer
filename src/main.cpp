@@ -8,18 +8,18 @@
 #include <thread>
 #include <atomic>
 
-const int IMAGE_WIDTH = 800, IMAGE_HEIGHT = 800;
-const float WINDOW_ZOOM = 0.5f;
+const int IMAGE_WIDTH = 400, IMAGE_HEIGHT = 400;
 std::atomic<bool> stop_signal = false;
 
 void render_loop(Image* img) {
     GLFWwindow* window;
 
+
     /* Initialize the library */
     if (!glfwInit())
         return;
 
-    window = glfwCreateWindow((int)(IMAGE_WIDTH * WINDOW_ZOOM), (int)(IMAGE_HEIGHT * WINDOW_ZOOM), "Raytracer", NULL, NULL);
+    window = glfwCreateWindow(1, 1, "Raytracer", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -28,8 +28,18 @@ void render_loop(Image* img) {
 
     glfwMakeContextCurrent(window);
 
-    glRasterPos2f(-1,1);
-    glPixelZoom(WINDOW_ZOOM, -WINDOW_ZOOM );
+    /* Set the framebuffer resize callback */
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+        GLfloat zoom = std::min(width / (float)IMAGE_WIDTH, height / (float)IMAGE_HEIGHT);
+        GLint offx = (int)((width - zoom * IMAGE_WIDTH) / 2.0f);
+        GLint offy = (int)((height - zoom * IMAGE_HEIGHT) / 4.0f);
+
+        glViewport(offx, -offy, width + offx, height - offy);
+        glRasterPos2f(-1,1);
+        glPixelZoom(zoom, -zoom);
+    });
+
+    glfwSetWindowSize(window, 400, (int)(400 * (float)IMAGE_HEIGHT/(float)IMAGE_WIDTH)); //calls resize callback
     while (!glfwWindowShouldClose(window) && !stop_signal) {
         glDrawPixels(IMAGE_WIDTH, IMAGE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, img->getPixels().data());
 
