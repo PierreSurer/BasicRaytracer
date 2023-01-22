@@ -166,9 +166,9 @@ Camera Scene::parseCamera(const YAML::Node& node) const
     target = parseVector(node["center"]);
 
     camera.setPosition(eye);
-    camera.lookAt(eye, target, up);
+    camera.lookAt(eye, target, normalize(up));
     if (node.FindValue("fov")) node["fov"] >> camera.fov;
-
+    
     return camera;
 }
 

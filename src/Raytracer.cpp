@@ -104,34 +104,26 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         }
     }
 
-    // color mixing
-    // double kr = mat->ior;
-    // // fresnel
-    // double cosi = dot(ray.D, hit.N);
-    // double etai = 1, etat = mat->ior;
-    // if (cosi > 0) { std::swap(etai, etat); }
-    // // Compute sini using Snell's law
-    // double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
-    // // Total internal reflection
-    // if (sint >= 1.0) {
-    //     kr = 1.0;
-    // } 
-    // else {
-    //     double cost = sqrt(std::max(0.0, 1 - sint * sint));
-    //     cosi = abs(cosi); 
-    //     double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-    //     double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-    //     kr = (Rs * Rs + Rp * Rp) / 2.0;
-    // }
-
-    // color += reflectionColor * kr + refractionColor * (1.0 - kr);
-
-    if (mat->ior > 1.0) {
-        color = refractionColor;
-    }
+    double kr = mat->ior;
+    // fresnel
+    double cosi = dot(ray.D, hit.N);
+    double etai = 1, etat = mat->ior;
+    if (cosi > 0) { std::swap(etai, etat); }
+    // Compute sini using Snell's law
+    double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+    // Total internal reflection
+    if (sint >= 1.0) {
+        kr = 1.0;
+    } 
     else {
-        color += reflectionColor;
+        double cost = sqrt(std::max(0.0, 1 - sint * sint));
+        cosi = abs(cosi); 
+        double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+        double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+        kr = (Rs * Rs + Rp * Rp) / 2.0;
     }
+
+    color += reflectionColor * kr + refractionColor * (1.0 - kr);
 
     return color;
 }
