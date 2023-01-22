@@ -18,7 +18,7 @@ public:
 
 private:
     Color traceColor(const Scene &scene, const Ray &ray, TraceState state = TraceState{});
-    Color traceDepth(const Scene &scene, const Ray &ray, const glm::dvec3 &axis, double near, double far);
+    Color traceDepth(const Scene &scene, const Ray &ray);
     Color traceNormals(const Scene &scene, const Ray &ray);
 
 };

@@ -104,41 +104,34 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         }
     }
 
-    // color mixing
-    // double kr = mat->ior;
-    // // fresnel
-    // double cosi = dot(ray.D, hit.N);
-    // double etai = 1, etat = mat->ior;
-    // if (cosi > 0) { std::swap(etai, etat); }
-    // // Compute sini using Snell's law
-    // double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
-    // // Total internal reflection
-    // if (sint >= 1.0) {
-    //     kr = 1.0;
-    // } 
-    // else {
-    //     double cost = sqrt(std::max(0.0, 1 - sint * sint));
-    //     cosi = abs(cosi); 
-    //     double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-    //     double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-    //     kr = (Rs * Rs + Rp * Rp) / 2.0;
-    // }
-
-    // color += reflectionColor * kr + refractionColor * (1.0 - kr);
-
-    if (mat->ior > 1.0) {
-        color = refractionColor;
-    }
+    double kr = mat->ior;
+    // fresnel
+    double cosi = dot(ray.D, hit.N);
+    double etai = 1, etat = mat->ior;
+    if (cosi > 0) { std::swap(etai, etat); }
+    // Compute sini using Snell's law
+    double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+    // Total internal reflection
+    if (sint >= 1.0) {
+        kr = 1.0;
+    } 
     else {
-        color += reflectionColor;
+        double cost = sqrt(std::max(0.0, 1 - sint * sint));
+        cosi = abs(cosi); 
+        double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+        double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+        kr = (Rs * Rs + Rp * Rp) / 2.0;
     }
+
+    color += reflectionColor * kr + refractionColor * (1.0 - kr);
 
     return color;
 }
 
-Color Raytracer::traceDepth(const Scene &scene, const Ray &ray, const dvec3 &axis, double near, double far)
+Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
 {
-    Ray newRay(ray.at(near), ray.D);
+    dvec3 axis =  scene.camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0);
+    Ray newRay(ray.at(scene.camera.near), ray.D);
 
     // Find hit object and distance
     Hit min_hit = Hit::NO_HIT();
@@ -150,7 +143,7 @@ Color Raytracer::traceDepth(const Scene &scene, const Ray &ray, const dvec3 &axi
     }
 
     // compute distance and project it on the optical axis
-    double z = (min_hit.t - near) / (far - near); // Linearized distance
+    double z = (min_hit.t - scene.camera.near) / (scene.camera.far - scene.camera.near); // Linearized distance
     z = z * dot(axis, ray.D);
     z = clamp(z, 0.0, 1.0);
     Color color = Color(1.0) * (1.0 - z);
@@ -199,7 +192,7 @@ void Raytracer::render(const Scene &scene, Image& img)
     for (int64_t i = 0; i < w * h; i++) {
         Color finalColor = {};
         int64_t px = i % w;            // pixel x coordinate
-        int64_t py = i / h;            // pixel y coordinate
+        int64_t py = i / w;            // pixel y coordinate
 
         double dx = px - w / 2.0;
         double dy = (h - py - 1) - h / 2.0;
@@ -219,7 +212,7 @@ void Raytracer::render(const Scene &scene, Image& img)
                 col = traceColor(scene, ray);
                 break;
             case RenderMode::DEPTH:
-                col = traceDepth(scene, ray, -cam_z, scene.camera.near, scene.camera.far);
+                col = traceDepth(scene, ray);
                 break;
             case RenderMode::NORMAL:
                 col = traceNormals(scene, ray);
