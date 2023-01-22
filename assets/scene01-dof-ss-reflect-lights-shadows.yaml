@@ -23,7 +23,7 @@ Camera:
 Shadows: true
 MaxRecursionDepth: 2
 SuperSampling:
-  factor: 2
+  factor: 4
 
 Lights:
 - position: [-200,600,1500]

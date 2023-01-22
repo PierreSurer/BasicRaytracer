@@ -26,7 +26,8 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 
     // No hit? Return background color.
     if (hit.no_hit)
-        return (ray.D + 1.0) * 0.5;
+        //return (ray.D + 1.0) * 0.5;
+        return Color(0.0);
 
     auto const& mat = obj->material;       //the hit objects material
     dvec3 hitPoint = ray.at(hit.t);        //the hit point
@@ -102,6 +103,10 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             if(refractionDir != dvec3(0.0))
                 refractionColor = traceColor(scene, refractionRay, nextState);
         }
+    }
+    if(mat->ior <= 1.0) {
+        color += reflectionColor;
+        return color;
     }
 
     double kr = mat->ior;
