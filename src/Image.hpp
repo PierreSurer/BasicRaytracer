@@ -23,6 +23,7 @@ public:
     // Normal accessors
     inline void putPixel(unsigned int x, unsigned int y, unsigned int channel, const unsigned char& c);
     inline unsigned char getPixel(unsigned int x, unsigned int y, unsigned int channel) const;
+    Color sample(glm::dvec2 uv) const;
 
     // Normalized accessors, interval is (0...1, 0...1)
     //inline const Color& colorAt(float x, float y) const; //TODO : convert to unsigned char if needed

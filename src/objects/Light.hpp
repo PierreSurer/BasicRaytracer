@@ -44,6 +44,10 @@ public:
         : t(t), N(normal), no_hit(nohit)
     { }
 
+    Hit(const double t, glm::dvec3 normal, glm::dvec2 texCoords, bool nohit = false)
+        : t(t), N(normal), no_hit(nohit), uv(texCoords)
+    { }
+
     static const Hit NO_HIT() { 
         constexpr double NaN = std::numeric_limits<double>::infinity();
         static Hit no_hit(NaN, glm::dvec3(NaN), true);

@@ -43,3 +43,12 @@ void Image::readPng(const char* filename)
 
     std::copy(image.begin(), image.end(), _pixel.begin());
 }
+
+Color Image::sample(glm::dvec2 uv) const {
+    return glm::dvec4(
+        (double)getPixel(uv.x, uv.y, 0),
+        (double)getPixel(uv.x, uv.y, 1),
+        (double)getPixel(uv.x, uv.y, 2),
+        (double)getPixel(uv.x, uv.y, 3)
+    );
+}

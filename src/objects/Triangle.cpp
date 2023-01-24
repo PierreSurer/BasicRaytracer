@@ -9,7 +9,7 @@ static dmat4 transpose_inverse(const dmat4& mat) {
 }
 
 Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3)
-    : Triangle(v1, v2, v3, dvec3{}, dvec3{}, dvec3{})
+    : Triangle(v1, v2, v3, dvec3{}, dvec3{}, dvec3{}, dvec2{}, dvec2{}, dvec2{})
 {
     // compute a main normal
     dvec3 d1 = v2 - v1;
@@ -17,10 +17,9 @@ Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3)
     n1 = n2 = n3 = N = normalize(cross(d1, d2));
 }
 
-Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3, dvec3 n1, dvec3 n2, dvec3 n3) 
-    : v1(v1), v2(v2), v3(v3), n1(n1), n2(n2), n3(n3)
+Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3, dvec3 n1, dvec3 n2, dvec3 n3, dvec2 t1, dvec2 t2, dvec2 t3) 
+    : v1(v1), v2(v2), v3(v3), n1(n1), n2(n2), n3(n3), t1(t1), t2(t2), t3(t3)
 {
-
     // compute a main normal
     glm::dvec3 d1 = v2 - v1;
     glm::dvec3 d2 = v3 - v1;
@@ -90,7 +89,7 @@ Hit Triangle::intersect(const Ray &ray) const
     
     double w = 1.0 - u - v;
 
-    return Hit(t, normalize(u * n2 + v * n3 + w * n1));
+    return Hit(t, normalize(u * n2 + v * n3 + w * n1), u * t2 + v * t3 + w * t1);
 
 #endif
 }

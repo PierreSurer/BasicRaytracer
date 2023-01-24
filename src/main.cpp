@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " in-file" << std::endl;
         std::cout << "    -o [out-file.png]" << std::endl;
         std::cout << "    -d [width] [height]" << std::endl;
-        std::cout << "    -w [display window (y/n)]" << std::endl;
+        std::cout << "    -w [display window (Y/n)]" << std::endl;
         return 1;
     }
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
     try { //parsing parameters
         while(word < argc) {
-            if (strcmp(argv[word], "-o") == 0) {
+            if (std::string(argv[word]) == "-o") {
                 if(word + 1 < argc) {
                     ofname = argv[word + 1];
                     word += 2;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
                     throw std::runtime_error("Missing arguments for " + std::string(argv[word]));
                 }
             } 
-            else if (strcmp(argv[word], "-d") == 0) {
+            else if (std::string(argv[word]) == "-d") {
                 if(word + 2 < argc) {
                     width = std::stoi(argv[word + 1]);
                     height = std::stoi(argv[word + 2]);
@@ -99,9 +99,9 @@ int main(int argc, char *argv[])
                     throw std::runtime_error("Missing arguments for " + std::string(argv[word]));
                 }
             }
-            else if (strcmp(argv[word], "-w") == 0) {
+            else if (std::string(argv[word]) == "-w") {
                 if(word + 1 < argc) {
-                    stop_signal = strcmp(argv[word + 1], "n") == 0;
+                    stop_signal = std::string(argv[word]) == "n";
                     word += 2;
                 } else {
                     throw std::runtime_error("Missing arguments for " + std::string(argv[word]));
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " in-file" << std::endl;
         std::cout << "    -o [out-file.png]" << std::endl;
         std::cout << "    -d [width] [height]" << std::endl;
-        std::cout << "    -w [display window (y/n)]" << std::endl;
+        std::cout << "    -w [display window (Y/n)]" << std::endl;
         return 1;
             
     }
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
     std::thread render_thread(render_loop, &img);
 
-    std::cout << "Tracing... ";
+    // std::cout << "Tracing... ";
     start = std::chrono::system_clock::now();
     raytracer.render(scene, img);
     end = std::chrono::system_clock::now();

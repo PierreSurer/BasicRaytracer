@@ -57,6 +57,9 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         if (!inShadow) {
             // Diffuse color calculation
             Color diffuseColor = light->color * mat->color * mat->kd;
+            if (mat->texture) {
+                diffuseColor *= mat->texture->sample(hit.uv);
+            }
             diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
             // diffuseColor *= light->diffusePower / length2(lightVector);
             color += diffuseColor;

@@ -8,7 +8,8 @@ using namespace glm;
 
 Mesh parseObj(const std::string &filename)
 {
-  std::vector<dvec3> verts, texCoords, normals;
+  std::vector<dvec3> verts, normals;
+  std::vector<dvec2> texCoords;
   std::vector<Triangle> faces;
 
   const std::regex face_desc(
@@ -42,7 +43,7 @@ Mesh parseObj(const std::string &filename)
     if (c == "vt") {
       double u, v;
       iss >> u >> v;
-      texCoords.emplace_back(u, v, 0.0);
+      texCoords.emplace_back(u, v);
     }
     else if (c == "f") {
       std::smatch match;
@@ -59,10 +60,11 @@ Mesh parseObj(const std::string &filename)
       n3 = std::stoi(match.str(9));
       faces.emplace_back(
         verts[p1-1], verts[p2-1], verts[p3-1],
-        normals[n1-1], normals[n2-1], normals[n3-1]
+        normals[n1-1], normals[n2-1], normals[n3-1],
+        texCoords[t1-1], texCoords[t2-1], texCoords[t3-1]
       );
     }
   }
-
+  
   return Mesh(std::move(faces));
 }

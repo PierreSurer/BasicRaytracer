@@ -7,8 +7,11 @@ class Triangle : public Object
 public:
     // flat shaded
     Triangle(glm::dvec3 v1, glm::dvec3 v2, glm::dvec3 v3);
-    // custom normals per triangle (e.g. smooth shaded)
-    Triangle(glm::dvec3 v1, glm::dvec3 v2, glm::dvec3 v3, glm::dvec3 n1, glm::dvec3 n2, glm::dvec3 n3);
+    // custom normals per triangle (e.g. smooth shaded) + texture coordinates.
+    Triangle(
+        glm::dvec3 v1, glm::dvec3 v2, glm::dvec3 v3,
+        glm::dvec3 n1, glm::dvec3 n2, glm::dvec3 n3,
+        glm::dvec2 t1, glm::dvec2 t2, glm::dvec2 t3);
 
     Hit intersect(const Ray &ray) const override;
 
@@ -23,4 +26,5 @@ private:
     friend class Mesh;
     glm::dvec3 v1, v2, v3;
     glm::dvec3 n1, n2, n3, N;
+    glm::dvec2 t1, t2, t3;
 };
