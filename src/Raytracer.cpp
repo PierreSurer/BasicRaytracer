@@ -190,7 +190,6 @@ void Raytracer::render(const Scene &scene, Image& img)
     // distance of the focal plane
     double dz = (h - 1) / (2.0 * tan(radians(scene.camera.fov) / 2.0));
 
-    double msaa_factor = 1.0 / (msaa * msaa);
     const double offset = 1.0 / (msaa * 2.0);
 
     #pragma omp parallel for schedule(dynamic, 64)
@@ -226,8 +225,9 @@ void Raytracer::render(const Scene &scene, Image& img)
                 throw std::runtime_error("No render type matched");
             } 
             col = clamp(col, 0.0, 1.0);
-            finalColor += col * msaa_factor;
+            finalColor += col;
         }
+        finalColor /= msaa * msaa;
         img.putPixel(px, py, 0, (unsigned char)(finalColor.r * 255.0));
         img.putPixel(px, py, 1, (unsigned char)(finalColor.g * 255.0));
         img.putPixel(px, py, 2, (unsigned char)(finalColor.b * 255.0));

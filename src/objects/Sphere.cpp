@@ -3,8 +3,8 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
-Sphere::Sphere(glm::dvec3 position, double r)
-    : position(position), r(r) 
+Sphere::Sphere(glm::dvec3 position, double r, glm::dvec3 rotation)
+    : position(position), r(r), rotation(rotation)
 {
 
 }

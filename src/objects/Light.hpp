@@ -38,6 +38,7 @@ public:
     double t;
     glm::dvec3 N;
     bool no_hit;
+    glm::dvec2 uv;
     
     Hit(const double t, glm::dvec3 normal, bool nohit = false)
         : t(t), N(normal), no_hit(nohit)

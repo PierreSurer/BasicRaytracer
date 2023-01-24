@@ -13,6 +13,8 @@ public:
     std::shared_ptr<Material> material;
 
     virtual Hit intersect(const Ray &ray) const = 0;
+    // virtual double intersect(const Ray &ray) const = 0;
+    // virtual Hit intersectionParams(const Ray &ray) const = 0;
 
     virtual AABB computeAABB() const = 0;
 
