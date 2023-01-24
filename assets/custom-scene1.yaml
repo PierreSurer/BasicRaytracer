@@ -31,11 +31,11 @@ Objects:
 
 - type: mesh
   file: "plane3-compressed.obj"
-  rotation: [-20, 20, 45]
+  rotation: [90, 0, 0]
   position: [0, 0, 300]
   scale: [100, 100, 100]
   material: # cyan
-    color: [0.0,1.0,1.0]
+    color: [1.0,1.0,1.0]
     ka: 0.2
     kd: 0.3
     ks: 0.7
@@ -54,18 +54,18 @@ Objects:
     n: 1
     ior: 1.0
 
-- type: cylinder
-  position: [-110,120,100]
-  rotation: [50, 40, 60]
-  height: 20
-  radius: 40
-  material: # yellow
-    color: [1.0,1.0,0.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
-    #ior: 1.5
+# - type: cylinder
+#   position: [-110,120,100]
+#   rotation: [50, 40, 60]
+#   height: 20
+#   radius: 40
+#   material: # yellow
+#     color: [1.0,1.0,0.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
+#     #ior: 1.5
 
 # - type: triangle
 #   p1: [0,0,50]
@@ -78,17 +78,17 @@ Objects:
 #     ks: 0.5
 #     n: 64
 
-- type: box
-  position: [0,0,400]
-  rotation: [0,30,0]
-  size: [40, 40, 40]
-  material: # red
-    color: [1.0,0.0,0.0]
-    ka: 0.2
-    kd: 0.7
-    ks: 0.5
-    n: 64
-    ior: 3.5
+# - type: box
+#   position: [0,0,400]
+#   rotation: [0,30,0]
+#   size: [40, 40, 40]
+#   material: # red
+#     color: [1.0,0.0,0.0]
+#     ka: 0.2
+#     kd: 0.7
+#     ks: 0.5
+#     n: 64
+#     ior: 3.5
 
 - type: sphere
   position: [100,-100,150]

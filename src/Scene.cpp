@@ -3,6 +3,7 @@
 #include "Image.hpp"
 #include "ParseObj.hpp"
 
+#include "lodepng.h"
 #include "objects/Box.hpp"
 #include "objects/Cylinder.hpp"
 #include "objects/Mesh.hpp"
@@ -64,6 +65,8 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     std::string objectType;
     node["type"] >> objectType;
 
+    auto material = parseMaterial(node["material"]);
+
     if (objectType == "sphere") {
         glm::dvec3 pos;
         double r;
@@ -97,9 +100,9 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         returnObject = std::make_unique<Triangle>(p1, p2, p3);
     }
     else if (objectType == "mesh") {
-        std::string fname;
+        std::string path;
         glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
-        node["file"] >> fname;
+        node["file"] >> path;
         if (node.FindValue("position")) node["position"] >> loc;
         if (node.FindValue("rotation")) node["rotation"] >> rot;
         if (node.FindValue("scale")) node["scale"] >> sca;
@@ -107,16 +110,19 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         glm::dmat4 mat = glm::translate(glm::dmat4(1.0), loc)
                        * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
                        * glm::scale(glm::dmat4(1.0), sca);
-        fname = assetsDir + fname;
-        Mesh mesh = parseObj(fname);
+        path = assetsDir / path;
+        Mesh mesh = parseObj(path);
         mesh.transform(mat);
         mesh.optimize();
         returnObject = std::make_unique<Mesh>(std::move(mesh));
+
+        auto texPath = std::filesystem::path(path);
+        texPath.replace_extension("png");
+        material->texture = std::make_shared<Image>(texPath.c_str());
     }
 
     if (returnObject) {
-        // read the material and attach to object
-        returnObject->material = parseMaterial(node["material"]);
+        returnObject->material = std::move(material);
     }
 
     return returnObject;

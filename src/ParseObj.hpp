@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <filesystem>
 #include "objects/Mesh.hpp"
 
-Mesh parseObj(const std::string &filename);
+Mesh parseObj(const std::filesystem::path &path);

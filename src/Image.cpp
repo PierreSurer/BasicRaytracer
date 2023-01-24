@@ -1,5 +1,6 @@
 #include "Image.hpp"
 #include "lodepng.h"
+#include <algorithm>
 #include <fstream>
 
 /*
@@ -29,8 +30,8 @@ void Image::readPng(const char* filename)
     //decode the png
     LodePNG::Decoder decoder;
     decoder.decode(image, buffer.empty() ? 0 : &buffer[0], (unsigned)buffer.size());
-    std::cout << decoder.getChannels() << std::endl;
-    std::cout << decoder.getBpp() << std::endl;
+    // std::cout << decoder.getChannels() << std::endl;
+    // std::cout << decoder.getBpp() << std::endl;
 
     if (decoder.getChannels()<3 || decoder.getBpp()<24) {
         std::cerr << "Error: only color (RGBA), 8 bit per channel png images are supported." << std::endl;
@@ -45,10 +46,14 @@ void Image::readPng(const char* filename)
 }
 
 Color Image::sample(glm::dvec2 uv) const {
+    unsigned int x = std::clamp<double>(uv.x * _width, 0.0, _width - 1);
+    unsigned int y = std::clamp<double>(uv.y * _height, 0.0, _height - 1);
+    y = _height - y - 1;
+    // std::cout << uv << x << " " << y << std::endl;
     return glm::dvec4(
-        (double)getPixel(uv.x, uv.y, 0),
-        (double)getPixel(uv.x, uv.y, 1),
-        (double)getPixel(uv.x, uv.y, 2),
-        (double)getPixel(uv.x, uv.y, 3)
+        getPixel(x, y, 0) / 255.0,
+        getPixel(x, y, 1) / 255.0,
+        getPixel(x, y, 2) / 255.0,
+        getPixel(x, y, 3) / 255.0
     );
 }

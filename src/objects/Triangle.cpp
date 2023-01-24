@@ -60,11 +60,12 @@ Hit Triangle::intersect(const Ray &ray) const
     double c2 = a2 / area;
     double c3 = a3 / area;
     dvec3 norm = normalize(n1 * c1 + n2 * c2 + n3 * c3);
+    dvec2 uv = t1 * c1 + t2 * c2 + t3 * c3;
 
     // uncomment this for flat shading
     // norm = N;
 
-    return Hit(t, norm);
+    return Hit(t, norm, uv);
 
 #else // Moller - Trumbore algorithm
     // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html

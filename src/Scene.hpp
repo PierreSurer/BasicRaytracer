@@ -7,6 +7,7 @@
 #include "yaml/yaml.h"
 
 #include <vector>
+#include <filesystem>
 #include <glm.hpp>
 
 enum class RenderMode {PHONG, NORMAL, DEPTH};
@@ -38,7 +39,7 @@ public:
     TraceParameters params;
 
 private:
-    std::string assetsDir;
+    std::filesystem::path assetsDir;
 
     // Couple of private functions for parsing YAML nodes
     std::unique_ptr<Material> parseMaterial(const YAML::Node& node) const;

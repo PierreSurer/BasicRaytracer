@@ -6,7 +6,7 @@
 
 using namespace glm;
 
-Mesh parseObj(const std::string &filename)
+Mesh parseObj(const std::filesystem::path &path)
 {
   std::vector<dvec3> verts, normals;
   std::vector<dvec2> texCoords;
@@ -17,7 +17,7 @@ Mesh parseObj(const std::string &filename)
   );
 
   std::ifstream file;
-  file.open(filename);
+  file.open(path);
 
   std::string line;
 
@@ -65,6 +65,11 @@ Mesh parseObj(const std::string &filename)
       );
     }
   }
+
+  // now try to parse a .mtl file at the same location
+  // auto mtl_path = path;
+  // mtl_path.replace_extension("mtl");
+  // TODO
   
   return Mesh(std::move(faces));
 }
