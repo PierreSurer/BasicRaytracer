@@ -3,7 +3,6 @@
 #include "Image.hpp"
 #include "ParseObj.hpp"
 
-#include "lodepng.h"
 #include "objects/Box.hpp"
 #include "objects/Cylinder.hpp"
 #include "objects/Mesh.hpp"
@@ -115,10 +114,6 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         mesh.transform(mat);
         mesh.optimize();
         returnObject = std::make_unique<Mesh>(std::move(mesh));
-
-        auto texPath = std::filesystem::path(path);
-        texPath.replace_extension("png");
-        material->texture = std::make_shared<Image>(texPath.c_str());
     }
 
     if (returnObject) {

@@ -10,7 +10,7 @@ using AABB = std::pair<glm::dvec3, glm::dvec3>;
 
 class Object {
 public:
-    std::shared_ptr<Material> material;
+    std::shared_ptr<Material> material = nullptr;
 
     virtual Hit intersect(const Ray &ray) const = 0;
     // virtual double intersect(const Ray &ray) const = 0;

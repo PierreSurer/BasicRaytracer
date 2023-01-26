@@ -49,7 +49,6 @@ Color Image::sample(glm::dvec2 uv) const {
     unsigned int x = std::clamp<double>(uv.x * _width, 0.0, _width - 1);
     unsigned int y = std::clamp<double>(uv.y * _height, 0.0, _height - 1);
     y = _height - y - 1;
-    // std::cout << uv << x << " " << y << std::endl;
     return glm::dvec4(
         getPixel(x, y, 0) / 255.0,
         getPixel(x, y, 1) / 255.0,

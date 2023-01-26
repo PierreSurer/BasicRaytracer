@@ -1,4 +1,5 @@
 #include "ParseObj.hpp"
+#include "Material.hpp"
 #include <fstream>
 #include <sstream>
 #include <regex>
@@ -11,6 +12,8 @@ Mesh parseObj(const std::filesystem::path &path)
   std::vector<dvec3> verts, normals;
   std::vector<dvec2> texCoords;
   std::vector<Triangle> faces;
+  MaterialBank mats;
+  std::shared_ptr<Material> active_mat = nullptr;
 
   const std::regex face_desc(
     "^f (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+)"
@@ -30,17 +33,31 @@ Mesh parseObj(const std::filesystem::path &path)
     std::string c;
     iss >> c;
 
-    if (c == "v") {
+    if (c == "mtllib") {
+      std::filesystem::path mtl_path;
+      iss >> mtl_path;
+      MaterialBank mtl = parseMtl(mtl_path);
+      mats.insert(mtl.begin(), mtl.end());
+    }
+    if (c == "usemtl") {
+      std::string name;
+      iss >> name;
+      auto it = mats.find(name);
+      if (it != mats.end()) {
+        active_mat = it->second;
+      }
+    }
+    else if (c == "v") {
       double x, y, z;
       iss >> x >> y >> z;
       verts.emplace_back(x, y, z);
     }
-    if (c == "vn") {
+    else if (c == "vn") {
       double x, y, z;
       iss >> x >> y >> z;
       normals.emplace_back(x, y, z);
     }
-    if (c == "vt") {
+    else if (c == "vt") {
       double u, v;
       iss >> u >> v;
       texCoords.emplace_back(u, v);
@@ -58,18 +75,67 @@ Mesh parseObj(const std::filesystem::path &path)
       n1 = std::stoi(match.str(3));
       n2 = std::stoi(match.str(6));
       n3 = std::stoi(match.str(9));
-      faces.emplace_back(
+      Triangle tri(
         verts[p1-1], verts[p2-1], verts[p3-1],
         normals[n1-1], normals[n2-1], normals[n3-1],
         texCoords[t1-1], texCoords[t2-1], texCoords[t3-1]
       );
+      tri.material = active_mat;
+      faces.push_back(tri);
     }
   }
 
-  // now try to parse a .mtl file at the same location
-  // auto mtl_path = path;
-  // mtl_path.replace_extension("mtl");
-  // TODO
-  
   return Mesh(std::move(faces));
+}
+
+
+MaterialBank parseMtl(const std::filesystem::path &path) {
+  MaterialBank res;
+  Material* mat = nullptr;
+
+  std::ifstream file;
+  file.open(path);
+
+  std::string line;
+
+  while (std::getline(file, line)) {
+    std::istringstream iss(line);
+    std::string c;
+    iss >> c;
+
+    if (c == "newmtl") {
+      std::string name;
+      iss >> name;
+      auto insert = res.emplace(name, std::make_shared<Material>());
+      mat = insert.first->second.get();
+    }
+    else if (c == "Ka") { // ambient color
+      iss >> mat->color.r >> mat->color.g >> mat->color.b;
+      mat->ka = 1.0;
+    }
+    else if (c == "Kd") { // diffuse color
+      Color col; // our color is implicitly white
+      iss >> col.r >> col.g >> col.b;
+      mat->kd = glm::length(col);
+    }
+    else if (c == "Ks") { // specular color
+      Color col; // our color is implicitly white
+      iss >> col.r >> col.g >> col.b;
+      mat->ks = glm::length(col);
+    }
+    else if (c == "Ns") { // specular exponent
+      iss >> mat->n;
+    }
+    else if (c == "Ni") { // index of refraction
+      iss >> mat->ior;
+    }
+    else if (c == "map_Ka") { // ambient texture
+      std::filesystem::path path;
+      iss >> path;
+      mat->texture = std::make_shared<Image>(path.c_str());
+      std::cout << mat->texture->width() << std::endl;
+    }
+  }
+
+  return res;
 }

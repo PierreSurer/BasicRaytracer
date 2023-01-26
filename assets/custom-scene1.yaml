@@ -30,7 +30,7 @@ Lights:
 Objects:
 
 - type: mesh
-  file: "plane3-compressed.obj"
+  file: "vion/plane3-compressed.obj"
   rotation: [90, 0, 0]
   position: [0, 0, 300]
   scale: [100, 100, 100]
