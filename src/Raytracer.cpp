@@ -30,9 +30,14 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     auto const& hitprop = hit->params();
     auto const& mat = hitprop.obj->material;   //the hit objects material
     dvec3 hitPoint = ray.at(hit->t);        //the hit point
-    
-    Color color(0.0, 0.0, 0.0);
-    color += mat->color * mat->ka;
+
+    Color diffuseColor(0.0), specularColor(0.0);
+    Color reflectionColor(0.0), refractionColor(0.0);
+    Color finalColor(0.0);
+
+    Color baseColor = mat->texture ?
+        mat->texture->sample(hitprop.tex_coords) :
+        mat->color;
 
     for (auto const& light : scene.lights) {
 
@@ -50,36 +55,28 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
                 }
             }
         }
-        // ambient color calculation
-        // color += mat->color * mat->ka * light->ambientPower;
 
         if (!inShadow) {
             // Diffuse color calculation
-            Color diffuseColor = light->color * mat->color * mat->kd;
-            if (mat->texture) {
-                diffuseColor = mat->texture->sample(hitprop.tex_coords);
-            }
-            diffuseColor *= clamp(dot(hitprop.normal, lightDir), 0.0, 1.0);
-            // diffuseColor *= light->diffusePower / length2(lightVector);
-            color += diffuseColor;
+            diffuseColor += baseColor * light->color * clamp(dot(hitprop.normal, lightDir), 0.0, 1.0);
 
             // Specular color calculation using blinn-phong model
-            Color specularColor = light->color * mat->ks;
             // blinn
             dvec3 H = normalize(lightDir - ray.D);
             double NdotH = clamp(dot(hitprop.normal, H), 0.0, 1.0);
-            specularColor *= pow(NdotH, 4.0 * mat->n);
+            specularColor += light->color * pow(NdotH, 4.0 * mat->n);
             // phong
             // dvec3 R = reflect(-lightDir, hit.N);
             // double NdotH = clamp(dot(-ray.D, R), 0.0, 1.0);
-            // specularColor *= pow(NdotH, mat->n);
+            // specularColor = light->color * pow(NdotH, mat->n);
+
+            // inverse-square law (optional)
+            // diffuseColor *= light->diffusePower / length2(lightVector);
             // specularColor *= light->specularPower / length2(lightVector);
-            color += specularColor;
         }
     }
 
     // reflection
-    Color reflectionColor(0);
     if (state.bounces < params.maxBounces && mat->ks * state.reflectionFactor > params.reflectionTheshold) {
         TraceState nextState(state);
         nextState.bounces++;
@@ -90,7 +87,6 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     }
     
     // refraction
-    Color refractionColor(0);
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
         dvec3 refractionDir = refract(ray.D, hitprop.normal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
@@ -107,9 +103,16 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         }
     }
 
+
+    // color blending
+    finalColor = 
+        baseColor * mat->ka +
+        diffuseColor * mat->kd +
+        specularColor * mat->ks;
+
     // full reflection
     if(mat->ior <= 1.0) {
-        color += reflectionColor;
+        finalColor += reflectionColor;
     }
 
     // reflection + refraction (fresnel)
@@ -133,10 +136,10 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             kr = (Rs * Rs + Rp * Rp) / 2.0;
         }
 
-        color += reflectionColor * kr + refractionColor * (1.0 - kr);
+        finalColor += reflectionColor * kr + refractionColor * (1.0 - kr);
     }
 
-    return clamp(color, 0.0, 1.0);
+    return finalColor;
 }
 
 Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
@@ -214,7 +217,7 @@ void Raytracer::render(const Scene &scene, Image& img)
             double pxx = dx + (1.0 + 2.0 * x) * offset;
             double pyy = dy + (1.0 + 2.0 * y) * offset;
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
-            Color col;
+            Color col(0.0);
             Ray ray(scene.camera.getPosition(), dir);
             switch (params.mode)
             {

@@ -109,22 +109,28 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
       iss >> name;
       auto insert = res.emplace(name, std::make_shared<Material>());
       mat = insert.first->second.get();
+      mat->color = dvec3(1.0);
     }
     else if (c == "Ka") { // ambient color
+      // our color ambient color is implicitly white, so we get the magnitude
+      // of the mtl's Ka (which represents ambientColor * ka)
       Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->color = col / 255.0;
-      mat->ka = 1.0;
+      mat->ka = length(col / 255.0) / sqrt(3.0);
     }
     else if (c == "Kd") { // diffuse color
-      Color col; // our color is implicitly white
+      // our color diffuse color is implicitly white, so we get the magnitude
+      // of the mtl's Kd (which represents diffuseColor * kd)
+      Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->kd = glm::length(col / 255.0);
+      mat->kd = length(col / 255.0) / sqrt(3.0);
     }
     else if (c == "Ks") { // specular color
-      Color col; // our color is implicitly white
+      // our color specular color is implicitly white, so we get the magnitude
+      // of the mtl's Ks (which represents specularColor * ks)
+      Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->ks = glm::length(col / 255.0);
+      mat->ks = length(col / 255.0) / sqrt(3.0);
     }
     else if (c == "Ns") { // specular exponent
       iss >> mat->n;
@@ -137,6 +143,7 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
       iss >> tex_path;
       tex_path = path.parent_path() / tex_path;
       mat->texture = std::make_shared<Image>(tex_path.c_str());
+      mat->kd = 1.0;
     }
   }
 

@@ -38,6 +38,9 @@ public:
         : t(t), no_hit(no_hit)
     { }
 
+    virtual ~BaseHit() = default;
+
+
     virtual const HitParams& params() const = 0;
 };
 
