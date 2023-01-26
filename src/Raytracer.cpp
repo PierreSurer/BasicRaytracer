@@ -14,23 +14,22 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     const TraceParameters &params = scene.params;
 
     // Find hit object and distance
-    Hit hit = Hit::NO_HIT();
-    Object *obj = nullptr;
+    auto hit = Hit::NO_HIT();
     for (const auto &o : scene.objects) {
-        Hit thisHit = o->intersect(ray);
-        if (thisHit.t < hit.t) {
-            hit = thisHit;
-            obj = o.get();
+        auto thisHit = o->intersect(ray);
+        if (thisHit->t < hit->t) {
+            hit = std::move(thisHit);
         }
     }
 
     // No hit? Return background color.
-    if (hit.no_hit)
+    if (hit->no_hit)
         //return (ray.D + 1.0) * 0.5;
         return Color(0.0);
 
-    auto const& mat = obj->material;       //the hit objects material
-    dvec3 hitPoint = ray.at(hit.t);        //the hit point
+    auto const& hitprop = hit->params();
+    auto const& mat = hitprop.obj->material;   //the hit objects material
+    dvec3 hitPoint = ray.at(hit->t);        //the hit point
     
     Color color(0.0, 0.0, 0.0);
     color += mat->color * mat->ka;
@@ -44,8 +43,8 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         if (params.shadows) {
             Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
             for (const auto &o : scene.objects) {
-                Hit shadowHit = o->intersect(shadowRay);
-                if(shadowHit.t <= length(lightVector)) {
+                auto shadowHit = o->intersect(shadowRay);
+                if(shadowHit->t <= length(lightVector)) {
                     inShadow = true;
                     break;
                 }
@@ -58,9 +57,9 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             // Diffuse color calculation
             Color diffuseColor = light->color * mat->color * mat->kd;
             if (mat->texture) {
-                diffuseColor *= mat->texture->sample(hit.uv);
+                diffuseColor = mat->texture->sample(hitprop.tex_coords);
             }
-            diffuseColor *= clamp(dot(hit.N, lightDir), 0.0, 1.0);
+            diffuseColor *= clamp(dot(hitprop.normal, lightDir), 0.0, 1.0);
             // diffuseColor *= light->diffusePower / length2(lightVector);
             color += diffuseColor;
 
@@ -68,7 +67,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             Color specularColor = light->color * mat->ks;
             // blinn
             dvec3 H = normalize(lightDir - ray.D);
-            double NdotH = clamp(dot(hit.N, H), 0.0, 1.0);
+            double NdotH = clamp(dot(hitprop.normal, H), 0.0, 1.0);
             specularColor *= pow(NdotH, 4.0 * mat->n);
             // phong
             // dvec3 R = reflect(-lightDir, hit.N);
@@ -85,7 +84,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         TraceState nextState(state);
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
-        dvec3 reflectedDir = reflect(ray.D, hit.N);
+        dvec3 reflectedDir = reflect(ray.D, hitprop.normal);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
         reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
@@ -93,13 +92,13 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     // refraction
     Color refractionColor(0);
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
-        dvec3 refractionDir = refract(ray.D, hit.N, 1.0 / mat->ior);
+        dvec3 refractionDir = refract(ray.D, hitprop.normal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
             Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
-            Hit refractionHit = obj->intersect(refractionRay);
-            if(!refractionHit.no_hit) {
-                refractionDir = refract(refractionRay.D, -refractionHit.N, mat->ior);
-                refractionRay = Ray(refractionRay.at(refractionHit.t) + EPS * refractionDir, refractionDir);
+            auto refractionHit = hitprop.obj->intersect(refractionRay);
+            if(!refractionHit->no_hit) {
+                refractionDir = refract(refractionRay.D, -refractionHit->params().normal, mat->ior);
+                refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir);
             }
             TraceState nextState(state);
             nextState.bounces++;
@@ -107,33 +106,37 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
                 refractionColor = traceColor(scene, refractionRay, nextState);
         }
     }
+
+    // full reflection
     if(mat->ior <= 1.0) {
         color += reflectionColor;
-        return color;
     }
 
-    double kr = mat->ior;
-    // fresnel
-    double cosi = dot(ray.D, hit.N);
-    double etai = 1, etat = mat->ior;
-    if (cosi > 0) { std::swap(etai, etat); }
-    // Compute sini using Snell's law
-    double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
-    // Total internal reflection
-    if (sint >= 1.0) {
-        kr = 1.0;
-    } 
+    // reflection + refraction (fresnel)
     else {
-        double cost = sqrt(std::max(0.0, 1 - sint * sint));
-        cosi = abs(cosi); 
-        double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-        double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-        kr = (Rs * Rs + Rp * Rp) / 2.0;
+        double kr = mat->ior;
+        // fresnel
+        double cosi = dot(ray.D, hitprop.normal);
+        double etai = 1, etat = mat->ior;
+        if (cosi > 0) { std::swap(etai, etat); }
+        // Compute sini using Snell's law
+        double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+        // Total internal reflection
+        if (sint >= 1.0) {
+            kr = 1.0;
+        } 
+        else {
+            double cost = sqrt(std::max(0.0, 1 - sint * sint));
+            cosi = abs(cosi); 
+            double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+            double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+            kr = (Rs * Rs + Rp * Rp) / 2.0;
+        }
+
+        color += reflectionColor * kr + refractionColor * (1.0 - kr);
     }
 
-    color += reflectionColor * kr + refractionColor * (1.0 - kr);
-
-    return color;
+    return clamp(color, 0.0, 1.0);
 }
 
 Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
@@ -142,16 +145,16 @@ Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
     Ray newRay(ray.at(scene.camera.near), ray.D);
 
     // Find hit object and distance
-    Hit min_hit = Hit::NO_HIT();
+    auto min_hit = Hit::NO_HIT();
     for (const auto &obj : scene.objects) {
-        Hit hit = obj->intersect(ray);
-        if (hit.t < min_hit.t) {
-            min_hit = hit;
+        auto hit = obj->intersect(ray);
+        if (hit->t < min_hit->t) {
+            min_hit = std::move(hit);
         }
     }
 
     // compute distance and project it on the optical axis
-    double z = (min_hit.t - scene.camera.near) / (scene.camera.far - scene.camera.near); // Linearized distance
+    double z = (min_hit->t - scene.camera.near) / (scene.camera.far - scene.camera.near); // Linearized distance
     z = z * dot(axis, ray.D);
     z = clamp(z, 0.0, 1.0);
     Color color = Color(1.0) * (1.0 - z);
@@ -162,18 +165,18 @@ Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
 Color Raytracer::traceNormals(const Scene &scene, const Ray &ray)
 {
     // Find hit object and distance
-    Hit min_hit = Hit::NO_HIT();
+    auto min_hit = Hit::NO_HIT();
     for (const auto &obj : scene.objects) {
-        Hit hit = obj->intersect(ray);
-        if (hit.t < min_hit.t) {
-            min_hit = hit;
+        auto hit = obj->intersect(ray);
+        if (hit->t < min_hit->t) {
+            min_hit = std::move(hit);
         }
     }
 
     // No hit? Return background color.
-    if (min_hit.no_hit) return Color(0.0, 0.0, 0.0);
+    if (min_hit->no_hit) return Color(0.0, 0.0, 0.0);
 
-    dvec3 N = min_hit.N;                          //the normal at hit point
+    dvec3 N = min_hit->params().normal;
 
     return Color(1.0 + N) * 0.5;
 }

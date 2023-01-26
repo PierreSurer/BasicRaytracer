@@ -154,7 +154,7 @@ void Mesh::transform(const dmat4& mat, const dmat4& norm_mat) {
     dirty = true;
 }
 
-Hit Mesh::intersect(const Ray& ray) const
+std::unique_ptr<BaseHit> Mesh::intersect(const Ray& ray) const
 {
     if (dirty) {
         throw std::runtime_error("mesh was not optimized");
@@ -180,18 +180,18 @@ Hit Mesh::intersect(const Ray& ray) const
     // return min_hit;
 }
 
-Hit Mesh::recurse_intersect(const BVH& bvh, const Ray& ray) const {
-    Hit min_hit = Hit::NO_HIT();
+std::unique_ptr<BaseHit> Mesh::recurse_intersect(const BVH& bvh, const Ray& ray) const {
+    auto min_hit = Hit::NO_HIT();
 
     if(intersect_aabb(bvh.aabb, ray)) {
         if (bvh.left != nullptr /* bvh.right is implied */) {
-            Hit hit = recurse_intersect(*bvh.left, ray);
-            if (hit.t < min_hit.t) {
-                min_hit = hit;
+            auto hit = recurse_intersect(*bvh.left, ray);
+            if (hit->t < min_hit->t) {
+                min_hit = std::move(hit);
             }
             hit = recurse_intersect(*bvh.right, ray);
-            if (hit.t < min_hit.t) {
-                min_hit = hit;
+            if (hit->t < min_hit->t) {
+                min_hit = std::move(hit);
             }
         }
         else {
@@ -201,14 +201,14 @@ Hit Mesh::recurse_intersect(const BVH& bvh, const Ray& ray) const {
     return min_hit;
 }
 
-Hit Mesh::intersect_indices(const std::vector<size_t> indices, const Ray &ray) const {
-    Hit min_hit = Hit::NO_HIT();
+std::unique_ptr<BaseHit> Mesh::intersect_indices(const std::vector<size_t> indices, const Ray &ray) const {
+    auto min_hit = Hit::NO_HIT();
 
     for (auto i : indices) {
         const auto& face = faces[i];
-        Hit hit = face.intersect(ray);
-        if (hit.t < min_hit.t) {
-            min_hit = hit;
+        auto hit = face.intersect(ray);
+        if (hit->t < min_hit->t) {
+            min_hit = std::move(hit);
         }
     }
 

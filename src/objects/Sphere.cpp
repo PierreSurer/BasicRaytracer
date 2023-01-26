@@ -3,15 +3,13 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
-Sphere::Sphere(glm::dvec3 position, double r, glm::dvec3 rotation)
-    : position(position), r(r), rotation(rotation)
-{
+Sphere::Sphere(dvec3 position, double r, dvec3 rotation)
+    : position(position), rotation(rotation), r(r)
+{ }
 
-}
-
-Hit Sphere::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
 {
-    glm::dvec3 OC = position - ray.O;
+    dvec3 OC = position - ray.O;
     // Min distance between ray and object position
     double h_2 = length2(cross(ray.D, OC));
     double r_2 = length2(r);
@@ -28,10 +26,11 @@ Hit Sphere::intersect(const Ray &ray) const
         return Hit::NO_HIT();
     }
 
-    glm::dvec3 intersectionPoint = ray.at(t);
-    glm::dvec3 N = (intersectionPoint - position) / r;
+    dvec3 intersectionPoint = ray.at(t);
+    dvec3 N = (intersectionPoint - position) / r;
+    dvec3 uv = dvec3(0.0); // TODO
 
-    return Hit(t, N);
+    return std::make_unique<Hit>(t, HitParams{ this, N, uv });
 }
 
 AABB Sphere::computeAABB() const {

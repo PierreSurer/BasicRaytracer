@@ -13,7 +13,7 @@ public:
         glm::dvec3 n1, glm::dvec3 n2, glm::dvec3 n3,
         glm::dvec2 t1, glm::dvec2 t2, glm::dvec2 t3);
 
-    Hit intersect(const Ray &ray) const override;
+    std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
 
     // apply a transform matrix to the vertices and normals
     void transform(const glm::dmat4& mat);

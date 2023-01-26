@@ -1,0 +1,32 @@
+# Blender 3.4.1 MTL File: 'None'
+# www.blender.org
+
+newmtl Bits
+Ns 65.000015
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Bits.png
+map_Ks Bits-Spec.png
+
+newmtl CockpitGlass
+Ns 0.000000
+Ka 0.372162 0.372162 0.372162
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.990000
+d 0.150000
+illum 1
+
+newmtl Main
+Ns 68.999992
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Color.png
+map_Ks Main-Spec.png

@@ -20,7 +20,7 @@ public:
     // recompute the acceleration structure
     void optimize();
 
-    Hit intersect(const Ray &ray) const override;
+    std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
 
 private:
     std::vector<Triangle> faces;
@@ -38,8 +38,8 @@ public:
     
 private:
     BVH compute_bvh() const;
-    Hit recurse_intersect(const BVH& bvh, const Ray &ray) const;
-    Hit intersect_indices(const std::vector<size_t> indices, const Ray &ray) const;
+    std::unique_ptr<BaseHit> recurse_intersect(const BVH& bvh, const Ray &ray) const;
+    std::unique_ptr<BaseHit> intersect_indices(const std::vector<size_t> indices, const Ray &ray) const;
 
     // (marked mutable as this is opaque from outsider's perspective)
     bool dirty = true;

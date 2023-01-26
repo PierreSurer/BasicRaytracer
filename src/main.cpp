@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
     Raytracer raytracer;
 
     std::cout << "Parsing... ";
+    std::flush(std::cout);
     start = std::chrono::system_clock::now();
 
     int word = 2;
@@ -144,7 +145,8 @@ int main(int argc, char *argv[])
 
     std::thread render_thread(render_loop, &img);
 
-    // std::cout << "Tracing... ";
+    std::cout << "Tracing... ";
+    std::flush(std::cout);
     start = std::chrono::system_clock::now();
     raytracer.render(scene, img);
     end = std::chrono::system_clock::now();

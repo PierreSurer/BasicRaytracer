@@ -26,7 +26,7 @@ Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3, dvec3 n1, dvec3 n2, dvec3 n3, d
     N = glm::normalize(glm::cross(d1, d2));
 }
 
-Hit Triangle::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Triangle::intersect(const Ray &ray) const
 {
 #if 1 // straightforward algorithm
 
@@ -65,7 +65,7 @@ Hit Triangle::intersect(const Ray &ray) const
     // uncomment this for flat shading
     // norm = N;
 
-    return Hit(t, norm, uv);
+    return std::make_unique<Hit>(t, HitParams{ this, norm, uv });
 
 #else // Moller - Trumbore algorithm
     // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
@@ -90,7 +90,9 @@ Hit Triangle::intersect(const Ray &ray) const
     
     double w = 1.0 - u - v;
 
-    return Hit(t, normalize(u * n2 + v * n3 + w * n1), u * t2 + v * t3 + w * t1);
+    dvec3 norm = normalize(u * n2 + v * n3 + w * n1);
+    dvec2 uv = u * t2 + v * t3 + w * t1;
+    return std::make_unique<Hit>(t, HitParams{ this, norm, uv });
 
 #endif
 }

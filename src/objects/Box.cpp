@@ -15,7 +15,7 @@ Box::Box(glm::dvec3 position, glm::dvec3 rotation, glm::dvec3 size)
     inv_orientation = inverse(orientation);
 }
 
-Hit Box::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
 {
     dvec3 localOrigin = inv_orientation * (ray.O - position);
     dvec3 localDirection = inv_orientation * ray.D;
@@ -29,17 +29,18 @@ Hit Box::intersect(const Ray &ray) const
     if(tNear > tFar || tFar < 0.0) return Hit::NO_HIT();
     
     dvec3 N;
+
     if(tNear >= 0.0) { // if outside box
         if(t1.x == tNear)      N = {-sign(localDirection.x), 0.0, 0.0};
         else if(t1.y == tNear) N = {0.0, -sign(localDirection.y), 0.0};
         else                   N = {0.0, 0.0, -sign(localDirection.z)};
-        return Hit(tNear, orientation * N);
     } else {
         if(t2.x == tFar)       N = {sign(localDirection.x), 0.0, 0.0};
         else if(t2.y == tFar)  N = {0.0, sign(localDirection.y), 0.0};
         else                   N = {0.0, 0.0, sign(localDirection.z)};
-        return Hit(tFar, orientation * N);
     }
+
+    return std::make_unique<Hit>(tNear, HitParams{ this, orientation * N, dvec3(0.0) }); // TODO uvs
 
     
 }

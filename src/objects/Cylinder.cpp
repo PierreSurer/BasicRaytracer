@@ -5,7 +5,7 @@
 
 using namespace glm;
 
-Cylinder::Cylinder(glm::dvec3 position, glm::dvec3 rotation, double height, double radius)
+Cylinder::Cylinder(dvec3 position, dvec3 rotation, double height, double radius)
     : position(position), rotation(rotation), height(height), radius(radius)
 {
     dquat rot = dquat(rotation);
@@ -13,10 +13,10 @@ Cylinder::Cylinder(glm::dvec3 position, glm::dvec3 rotation, double height, doub
     inv_orientation = inverse(orientation);
 }
 
-Hit Cylinder::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Cylinder::intersect(const Ray &ray) const
 {
-    glm::dvec3 localOrigin = inv_orientation * (ray.O - position);
-    glm::dvec3 localDirection = inv_orientation * ray.D;
+    dvec3 localOrigin = inv_orientation * (ray.O - position);
+    dvec3 localDirection = inv_orientation * ray.D;
 
     double a = (localDirection.x * localDirection.x) + (localDirection.z * localDirection.z);
     double b = 2.0 * (localDirection.x * localOrigin.x + localDirection.z * localOrigin.z);
@@ -35,29 +35,32 @@ Hit Cylinder::intersect(const Ray &ray) const
             return Hit::NO_HIT();
         else
             if(t1 > 0.0) {//outside cylinder
-                glm::dvec3 pos = localOrigin + t1 * localDirection;
-                glm::dvec3 N = normalize(glm::dvec3(pos.x, 0.0, pos.z));
-                return Hit(t1, orientation * N);
+                dvec3 pos = localOrigin + t1 * localDirection;
+                dvec3 N = normalize(dvec3(pos.x, 0.0, pos.z));
+                dvec3 uv = dvec3(0.0); // TODO
+                return std::make_unique<Hit>(t1, HitParams{ this, N, uv });
             }
             else {
-                glm::dvec3 pos = localOrigin + t2 * localDirection;
-                glm::dvec3 N = normalize(glm::dvec3(-pos.x, 0.0, -pos.z));
-                return Hit(t2, orientation * N);
+                dvec3 pos = localOrigin + t2 * localDirection;
+                dvec3 N = normalize(dvec3(-pos.x, 0.0, -pos.z));
+                dvec3 uv = dvec3(0.0); // TODO
+                return std::make_unique<Hit>(t1, HitParams{ this, N, uv });
             }
             
     }
     else {
         return Hit::NO_HIT();
-        glm::dvec3 N = normalize(glm::dvec3(0.0, -localDirection.y, 0.0));
+        dvec3 N = normalize(dvec3(0.0, -localDirection.y, 0.0));
         double proj = dot(localDirection, N);
         
         // project the ray on the plane surface
-        double t = dot(glm::dvec3(0.0, height * N.y, 0.0) - localOrigin, N) / proj;
-        glm::dvec3 pos = localOrigin + t * localDirection;
+        double t = dot(dvec3(0.0, height * N.y, 0.0) - localOrigin, N) / proj;
+        dvec3 pos = localOrigin + t * localDirection;
         if(t < 0.0 || pos.x * pos.x + pos.z * pos.z > radius * radius) 
             return Hit::NO_HIT();
         
-        return Hit(t, orientation * N);
+        dvec3 uv = dvec3(0.0); // TODO
+        return std::make_unique<Hit>(t1, HitParams{ this, N, uv });
     }
 }
 

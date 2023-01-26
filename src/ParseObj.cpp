@@ -13,7 +13,7 @@ Mesh parseObj(const std::filesystem::path &path)
   std::vector<dvec2> texCoords;
   std::vector<Triangle> faces;
   MaterialBank mats;
-  std::shared_ptr<Material> active_mat = nullptr;
+  std::shared_ptr<Material> active_mat = DEFAULT_MATERIAL;
 
   const std::regex face_desc(
     "^f (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+)"
@@ -36,6 +36,7 @@ Mesh parseObj(const std::filesystem::path &path)
     if (c == "mtllib") {
       std::filesystem::path mtl_path;
       iss >> mtl_path;
+      mtl_path = path.parent_path() / mtl_path;
       MaterialBank mtl = parseMtl(mtl_path);
       mats.insert(mtl.begin(), mtl.end());
     }
@@ -81,7 +82,7 @@ Mesh parseObj(const std::filesystem::path &path)
         texCoords[t1-1], texCoords[t2-1], texCoords[t3-1]
       );
       tri.material = active_mat;
-      faces.push_back(tri);
+      faces.push_back(std::move(tri));
     }
   }
 
@@ -110,18 +111,20 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
       mat = insert.first->second.get();
     }
     else if (c == "Ka") { // ambient color
-      iss >> mat->color.r >> mat->color.g >> mat->color.b;
+      Color col;
+      iss >> col.r >> col.g >> col.b;
+      mat->color = col / 255.0;
       mat->ka = 1.0;
     }
     else if (c == "Kd") { // diffuse color
       Color col; // our color is implicitly white
       iss >> col.r >> col.g >> col.b;
-      mat->kd = glm::length(col);
+      mat->kd = glm::length(col / 255.0);
     }
     else if (c == "Ks") { // specular color
       Color col; // our color is implicitly white
       iss >> col.r >> col.g >> col.b;
-      mat->ks = glm::length(col);
+      mat->ks = glm::length(col / 255.0);
     }
     else if (c == "Ns") { // specular exponent
       iss >> mat->n;
@@ -129,11 +132,11 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
     else if (c == "Ni") { // index of refraction
       iss >> mat->ior;
     }
-    else if (c == "map_Ka") { // ambient texture
-      std::filesystem::path path;
-      iss >> path;
-      mat->texture = std::make_shared<Image>(path.c_str());
-      std::cout << mat->texture->width() << std::endl;
+    else if (c == "map_Kd") { // diffuse texture
+      std::filesystem::path tex_path;
+      iss >> tex_path;
+      tex_path = path.parent_path() / tex_path;
+      mat->texture = std::make_shared<Image>(tex_path.c_str());
     }
   }
 

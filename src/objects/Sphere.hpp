@@ -7,7 +7,7 @@ class Sphere : public Object
 public:
     Sphere(glm::dvec3 position, double r, glm::dvec3 rotation = glm::dvec3(0.0));
 
-    Hit intersect(const Ray &ray) const override;
+    std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
     
 protected:
     AABB computeAABB() const override;
