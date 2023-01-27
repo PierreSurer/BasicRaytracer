@@ -142,7 +142,7 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
       std::filesystem::path tex_path;
       iss >> tex_path;
       tex_path = path.parent_path() / tex_path;
-      mat->texture = std::make_shared<Image>(tex_path.c_str());
+      mat->texture = std::make_shared<Image>(tex_path.string());
       mat->kd = 1.0;
     }
   }

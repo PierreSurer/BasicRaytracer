@@ -37,7 +37,9 @@ static glm::dvec3 parseVector(const YAML::Node& node)
     return v;
 }
 
-Scene::Scene(){
+Scene::Scene()
+ : sky(Sky::NONE)
+{
 }
 
 Scene::~Scene() {
@@ -109,7 +111,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         glm::dmat4 mat = glm::translate(glm::dmat4(1.0), loc)
                        * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
                        * glm::scale(glm::dmat4(1.0), sca);
-        path = assetsDir / path;
+        path = (assetsDir / path).string();
         Mesh mesh = parseObj(path);
         mesh.transform(mat);
         mesh.optimize();

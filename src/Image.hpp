@@ -15,7 +15,7 @@ public:
         setSize(width, height);    //creates array
     }
 
-    Image(const char *imageFilename): Image()
+    Image(std::string const& imageFilename): Image()
     {
         readPng(imageFilename);
     }
@@ -37,8 +37,8 @@ public:
     inline unsigned int size() const   { return _width * _height; }
 
     // File stuff
-    void writePng(const char* filename);
-    void readPng(const char* filename);
+    void writePng(std::string const& filename);
+    void readPng(std::string const& filename);
 
     inline std::vector<unsigned char> getPixels() const { return _pixel; };
 

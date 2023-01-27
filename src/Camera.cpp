@@ -19,7 +19,6 @@ void Camera::setPosition(glm::dvec3 const& pos) {
 
 void Camera::setRotation(glm::dvec3 const& rot) {
     this->rotation = rot;
-    this->rotation.y = glm::mod(rotation.y, 360.0);
     this->rotMat = glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);
 }
 

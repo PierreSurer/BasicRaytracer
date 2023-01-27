@@ -9,6 +9,10 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
+Raytracer::Raytracer() {
+    noise.seed(0);
+}
+
 Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state)
 {
     const TraceParameters &params = scene.params;
@@ -22,10 +26,24 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         }
     }
 
-    // No hit? Return background color.
-    if (hit->no_hit)
-        //return (ray.D + 1.0) * 0.5;
-        return Color(0.0);
+    // No hit? Return sky color.
+    if (hit->no_hit) {
+        switch (scene.sky)
+        {
+            case Sky::DIRECTION:
+                return (ray.D + 1.0) * 0.5;
+            case Sky::DAY:
+                return (ray.D + 1.0) * 0.5;
+            case Sky::NIGHT:
+            {
+                float y = tan(ray.D.y * glm::pi<float>());
+                return clamp(Color((double)noise.simplex2(ray.D * 15.0)) - 0.9, 0.0, 1.0) * 8.0 + clamp(Color((double)noise.simplex2(180.0 + ray.D * 300.0)) - 0.95, 0.0, 1.0) * 15.0;
+            }    
+            default: //Or sky::NONE
+                return Color(0.0);
+        }
+    }
+        
 
     auto const& hitprop = hit->params();
     auto const& mat = hitprop.obj->material;   //the hit objects material
@@ -192,9 +210,9 @@ void Raytracer::render(const Scene &scene, Image& img)
     int64_t h = img.height();
 
     // build a set of camera axes (right-hand rule, look in z-negative direction)
-    glm::dvec3 cam_z = scene.camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0); // -view_direction
-    glm::dvec3 cam_x = scene.camera.getRotationMat() * glm::dvec4(1.0, 0.0, 0.0, 0.0);
-    glm::dvec3 cam_y = cross(cam_z, cam_x);
+    glm::dvec3 cam_x =  glm::dvec4(1.0, 0.0, 0.0, 0.0) * scene.camera.getRotationMat();
+    glm::dvec3 cam_y =  glm::dvec4(0.0, 1.0, 0.0, 0.0) * scene.camera.getRotationMat();
+    glm::dvec3 cam_z =  glm::dvec4(0.0, 0.0, 1.0, 0.0) * scene.camera.getRotationMat(); // -view_direction
 
     // distance of the focal plane
     double dz = (h - 1) / (2.0 * tan(radians(scene.camera.fov) / 2.0));

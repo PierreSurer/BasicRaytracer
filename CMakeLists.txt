@@ -20,6 +20,7 @@ file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/yaml/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/objects/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/noise/*.cpp
 )
 
 # Add header files

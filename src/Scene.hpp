@@ -20,6 +20,8 @@ struct TraceParameters {
     RenderMode mode = RenderMode::PHONG;
 };
 
+enum class Sky {NONE, DAY, NIGHT, DIRECTION};
+
 class Scene
 {
 public:
@@ -34,6 +36,7 @@ public:
 
     std::vector<std::unique_ptr<Object>> objects; //TODO private?
     std::vector<std::unique_ptr<Light>> lights;
+    Sky sky;
 
     Camera camera;
     TraceParameters params;

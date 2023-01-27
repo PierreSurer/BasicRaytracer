@@ -15,13 +15,13 @@ void Image::setSize(int width, int height)
 }
 
 
-void Image::writePng(const char* filename)
+void Image::writePng(std::string const& filename)
 {
     LodePNG::encode(filename, _pixel, _width, _height);
 }
 
 
-void Image::readPng(const char* filename)
+void Image::readPng(std::string const& filename)
 {
     std::vector<unsigned char> buffer, image;
     //load the image file with given filename
@@ -46,8 +46,8 @@ void Image::readPng(const char* filename)
 }
 
 Color Image::sample(glm::dvec2 uv) const {
-    unsigned int x = std::clamp<double>(uv.x * _width, 0.0, _width - 1);
-    unsigned int y = std::clamp<double>(uv.y * _height, 0.0, _height - 1);
+    unsigned int x = (unsigned int)std::clamp<double>(uv.x * _width, 0.0, _width - 1);
+    unsigned int y = (unsigned int)std::clamp<double>(uv.y * _height, 0.0, _height - 1);
     y = _height - y - 1;
 
     return glm::dvec4(
