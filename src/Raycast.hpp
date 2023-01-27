@@ -41,7 +41,7 @@ public:
     virtual ~BaseHit() = default;
 
 
-    virtual const HitParams& params() const = 0;
+    virtual HitParams params() const = 0;
 };
 
 class Hit : public BaseHit
@@ -57,7 +57,7 @@ public:
         return std::make_unique<Hit>(no_hit);
     }
 
-    const HitParams& params() const override {
+    HitParams params() const override {
         return _params;
     }
 

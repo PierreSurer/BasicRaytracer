@@ -8,6 +8,44 @@ static dmat4 transpose_inverse(const dmat4& mat) {
     return transpose(inverse(mat));
 }
 
+
+class TriangleHit : public BaseHit {
+public:
+    TriangleHit(const Triangle* tri, Ray ray, double t);
+
+    HitParams params() const override;
+
+private:
+    Ray ray;
+    const Triangle* tri;
+};
+
+TriangleHit::TriangleHit(const Triangle* tri, Ray ray, double t)
+    : BaseHit(t), ray(ray), tri(tri)
+{ }
+
+HitParams TriangleHit::params() const {
+    dvec3 target = ray.O + ray.D * t;
+
+    // interpolate the vertex normals using barycentric coordinates. it
+    // corresponds to the ratio of areas of sub-triangles defined by the target
+    // point.
+    double a3 = length(cross((target - tri->v1), (target - tri->v2))) / 2.0;
+    double a1 = length(cross((target - tri->v2), (target - tri->v3))) / 2.0;
+    double a2 = length(cross((target - tri->v3), (target - tri->v1))) / 2.0;
+    double area = a1 + a2 + a3;
+    double c1 = a1 / area;
+    double c2 = a2 / area;
+    double c3 = a3 / area;
+    dvec3 norm = normalize(tri->n1 * c1 + tri->n2 * c2 + tri->n3 * c3);
+    dvec2 uv = tri->t1 * c1 + tri->t2 * c2 + tri->t3 * c3;
+
+    // uncomment this for flat shading
+    // norm = N;
+
+    return HitParams{ tri, norm, uv };
+}
+
 Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3)
     : Triangle(v1, v2, v3, dvec3{}, dvec3{}, dvec3{}, dvec2{}, dvec2{}, dvec2{})
 {
@@ -28,7 +66,7 @@ Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3, dvec3 n1, dvec3 n2, dvec3 n3, d
 
 std::unique_ptr<BaseHit> Triangle::intersect(const Ray &ray) const
 {
-#if 1 // straightforward algorithm
+#if 0 // straightforward algorithm
 
     // test for backface culling: triangle faces away => is invisible
     double proj = dot(ray.D, N);
@@ -48,24 +86,9 @@ std::unique_ptr<BaseHit> Triangle::intersect(const Ray &ray) const
     ) {
         return Hit::NO_HIT();
     }
-
-    // interpolate the vertex normals using barycentric coordinates. it
-    // corresponds to the ratio of areas of sub-triangles defined by the target
-    // point.
-    double a3 = length(cross((target - v1), (target - v2))) / 2.0;
-    double a1 = length(cross((target - v2), (target - v3))) / 2.0;
-    double a2 = length(cross((target - v3), (target - v1))) / 2.0;
-    double area = a1 + a2 + a3;
-    double c1 = a1 / area;
-    double c2 = a2 / area;
-    double c3 = a3 / area;
-    dvec3 norm = normalize(n1 * c1 + n2 * c2 + n3 * c3);
-    dvec2 uv = t1 * c1 + t2 * c2 + t3 * c3;
-
-    // uncomment this for flat shading
-    // norm = N;
-
-    return std::make_unique<Hit>(t, HitParams{ this, norm, uv });
+    else {
+        return std::make_unique<TriangleHit>(this, ray, t);
+    }
 
 #else // Moller - Trumbore algorithm
     // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html

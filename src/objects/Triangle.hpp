@@ -24,6 +24,7 @@ protected:
 
 private:
     friend class Mesh;
+    friend class TriangleHit;
     glm::dvec3 v1, v2, v3;
     glm::dvec3 n1, n2, n3, N;
     glm::dvec2 t1, t2, t3;
