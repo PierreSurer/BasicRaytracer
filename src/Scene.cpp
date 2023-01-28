@@ -134,6 +134,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     if (returnObject) {
         returnObject->material = std::move(material);
         returnObject = std::make_unique<TransformNode>(std::move(returnObject), transform);
+        ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 0.4);
     }
 
     return returnObject;
@@ -254,3 +255,4 @@ bool Scene::readScene(const std::string& inputFilename)
 
     std::cout << "YAML parsing results: " << objects.size() << " objects read - " ;
     return true;
+}

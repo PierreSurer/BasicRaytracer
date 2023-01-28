@@ -9,7 +9,7 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
-Raytracer::Raytracer() : apertureTime(0.0) {
+Raytracer::Raytracer() : apertureTime(1.0) {
     noise.seed(0);
     srand(0);
 }
@@ -165,7 +165,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
 {
     dvec3 axis =  scene.camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0);
-    Ray newRay(ray.at(scene.camera.near), ray.D);
+    Ray newRay(ray.at(scene.camera.near), ray.D, ray.time);
 
     // Find hit object and distance
     auto min_hit = Hit::NO_HIT();

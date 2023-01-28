@@ -13,8 +13,8 @@ public:
     glm::dvec3 D;
     double time;
 
-    Ray(const glm::dvec3 &from, const glm::dvec3 &dir, double delay = 0.0)
-        : O(from), D(dir), time(delay)
+    Ray(const glm::dvec3 &from, const glm::dvec3 &dir, double time = 0.0)
+        : O(from), D(dir), time(time)
     { }
 
     glm::dvec3 at(double t) const

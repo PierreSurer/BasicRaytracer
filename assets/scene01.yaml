@@ -58,7 +58,7 @@ Objects:
     ior: 1.0
 - type: sphere
   position: [-60,20,400]
-  rotation: [90, 60, 0]
+  rotation: [0, 0, 0]
   radius: 50
   material: # yellow
     texture: earth.png

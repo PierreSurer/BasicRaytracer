@@ -55,15 +55,15 @@ std::unique_ptr<BaseHit> TransformNode::intersect(const Ray& globalRay) const
 
 Ray TransformNode::computeLocalRay(const Ray& globalRay) const
 {
-  dvec3 O = invModel * dvec4(globalRay.O, 1.0);
-  dvec3 target = invModel * dvec4(globalRay.O + globalRay.D, 1.0);
-  return Ray(O, normalize(target - O), globalRay.time);
+    dvec3 O = invModel * dvec4(globalRay.O, 1.0);
+    dvec3 target = invModel * dvec4(globalRay.O + globalRay.D, 1.0);
+    return Ray(O - velocity * globalRay.time, normalize(target - O), globalRay.time);
 }
 
 void TransformNode::setModel(dmat4 M)
 {
-  model = M;
-  invModel = inverse(model);
-  normModel = transpose(invModel);
+    model = M;
+    invModel = inverse(model);
+    normModel = transpose(invModel);
 }
 
