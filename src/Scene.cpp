@@ -68,32 +68,33 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 
     auto material = parseMaterial(node["material"]);
 
+    glm::dmat4 mat(1.0);
+    {
+        glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
+        if (node.FindValue("position")) node["position"] >> loc;
+        if (node.FindValue("rotation")) node["rotation"] >> rot;
+        if (node.FindValue("scale")) node["scale"] >> sca;
+        rot = radians(rot);
+        mat = glm::translate(glm::dmat4(1.0), loc)
+            * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
+            * glm::scale(glm::dmat4(1.0), sca);
+    }
+
     if (objectType == "sphere") {
-        glm::dvec3 pos;
-        double r;
-        node["position"] >> pos;
-        node["radius"] >> r;
-        returnObject = std::make_unique<Sphere>(pos, r);
+        double radius(1.0);
+        if (node.FindValue("radius")) node["radius"] >> radius;
+        mat *= glm::scale(glm::dmat4(1.0), glm::dvec3(radius));
+        returnObject = std::make_unique<Sphere>(mat);
     }
     else if (objectType == "box") {
-        glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
-        node["position"] >> loc;
-        node["rotation"] >> rot;
-        node["size"] >> sca;
-        rot = radians(rot);
-        glm::dmat4 mat = glm::translate(glm::dmat4(1.0), loc)
-                       * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
-                       * glm::scale(glm::dmat4(1.0), sca);
         returnObject = std::make_unique<Box>(mat);
     }
     else if (objectType == "cylinder") {
-        glm::dvec3 loc(0.0), rot(0.0);
-        double height, radius;
-        node["position"] >> loc;
-        node["rotation"] >> rot;
-        node["height"] >> height;
-        node["radius"] >> radius;
-        returnObject = std::make_unique<Cylinder>(loc, radians(rot), height, radius);
+        double height(1.0), radius(1.0);
+        if (node.FindValue("height")) node["height"] >> height;
+        if (node.FindValue("radius")) node["radius"] >> radius;
+        mat *= glm::scale(glm::dmat4(1.0), glm::dvec3(height, radius, radius));
+        returnObject = std::make_unique<Cylinder>(mat);
     }
     else if (objectType == "triangle") {
         glm::dvec3 p1;

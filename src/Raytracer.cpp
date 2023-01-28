@@ -66,7 +66,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         bool inShadow = false;
 
         if (params.shadows) {
-            Ray shadowRay(hitPoint + EPS * lightDir, lightDir, ray.delay);
+            Ray shadowRay(hitPoint + EPS * lightDir, lightDir, ray.time);
             for (const auto &o : scene.objects) {
                 auto shadowHit = o->intersect(shadowRay);
                 if(shadowHit->t <= length(lightVector)) {
@@ -102,7 +102,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hitProp.normal);
-        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir, ray.delay);
+        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir, ray.time);
         reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
     
@@ -110,11 +110,11 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
         dvec3 refractionDir = refract(ray.D, hitProp.normal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
-            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir, ray.delay);
+            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir, ray.time);
             auto refractionHit = hitProp.obj->intersect(refractionRay);
             if(!refractionHit->no_hit) {
                 refractionDir = refract(refractionRay.D, -refractionHit->params().normal, mat->ior);
-                refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir, ray.delay);
+                refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir, ray.time);
             }
             TraceState nextState(state);
             nextState.bounces++;

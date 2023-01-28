@@ -16,7 +16,6 @@ Box::Box(dmat4 model)
 std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
 {
     Ray ray = computeLocalRay(globalRay);
-    // Ray ray = globalRay;
 
     dvec3 tMin = (-dvec3(1.0) - ray.O) / ray.D;
     dvec3 tMax = (dvec3(1.0)  - ray.O) / ray.D;
@@ -41,10 +40,13 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
         else                   normal = {0.0, 0.0, sign(ray.D.z)};
     }
 
-    normal = normModel * normal;
+    normal = normalize(normModel * normal);
 
     // TODO uv
     dvec2 uv(0.0);
+
+    // transform local time back to global space
+    tNear *= length(model * vec4(ray.D, 0.0));
 
     return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
 }

@@ -3,43 +3,50 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
-Sphere::Sphere(dvec3 position, double r, dvec3 rotation)
-    : position(position), rotation(rotation), r(r)
+Sphere::Sphere(dmat4 model)
 {
+    setModel(model);
     velocity = glm::dvec3(40.0, 0.0, 0.0);
 }
 
-std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Sphere::intersect(const Ray& globalRay) const
 {
-    dvec3 pos = position + velocity * ray.delay;
-    dvec3 OC = pos - ray.O;
-    // Min distance between ray and object position
-    double h_2 = length2(cross(ray.D, OC));
-    double r_2 = length2(r);
-    if (h_2 > r_2) {
+    Ray ray = computeLocalRay(globalRay);
+
+    // dvec3 pos = velocity * ray.time;
+    dvec3 OC = -ray.O;
+
+    double t1 = dot(OC, ray.D);
+    double h_2 = length2(OC) - t1 * t1;
+    if (h_2 > 1.0) {
         return Hit::NO_HIT();
     }
+
     double t;
-    if(length2(OC) >= r_2)
-        t = dot(OC, ray.D) - sqrt(r_2 - h_2);
+    if(length2(OC) >= 1.0)
+        t = t1 - sqrt(1.0 - h_2);
     else
-        t = dot(OC, ray.D) + sqrt(r_2 - h_2);
-    
+        t = t1 + sqrt(1.0 - h_2);
+
     if (t < 0.0) {
         return Hit::NO_HIT();
     }
 
     dvec3 intersectionPoint = ray.at(t);
-    dvec3 N = (intersectionPoint - pos) / r;
+    dvec3 normal = normalize(normModel * intersectionPoint);
     dvec3 uv = dvec3(0.0); // TODO
 
-    return std::make_unique<Hit>(t, HitParams{ this, N, uv });
+    // transform local time back to global space
+    t *= length(dmat3(model) * ray.D);
+
+    return std::make_unique<Hit>(t, HitParams{ this, normal, uv });
 }
 
 AABB Sphere::computeAABB() const {
     AABB aabb;
-    aabb.first = position - r;
-    aabb.second = position + r;
+    // TODO
+    // aabb.first = position - r;
+    // aabb.second = position + r;
 
     return aabb;
 }

@@ -6,7 +6,7 @@ Ray Object::computeLocalRay(const Ray& globalRay) const
 {
   dvec3 O = invModel * dvec4(globalRay.O, 1.0);
   dvec3 target = invModel * dvec4(globalRay.O + globalRay.D, 1.0);
-  return Ray(O, target - O, globalRay.delay);
+  return Ray(O, normalize(target - O), globalRay.time);
 }
 
 
