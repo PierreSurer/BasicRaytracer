@@ -40,7 +40,18 @@ Objects:
     kd: 0.3
     ks: 0.7
     n: 8
-    # ior: 1.5
+
+- type: mesh
+  file: "vion-lowres/propeller.obj"
+  rotation: [90, 180, 0]
+  position: [0, 0, 300]
+  scale: [20, 20, 20]
+  material: # cyan
+    color: [1.0,1.0,1.0]
+    ka: 0.2
+    kd: 0.3
+    ks: 0.7
+    n: 8
 
   # background sphere
 - type: sphere

@@ -1,4 +1,4 @@
-# Blender 3.4.1 MTL File: 'None'
+# Blender 3.4.1 MTL File: 'vion.blend'
 # www.blender.org
 
 newmtl Bits
@@ -8,8 +8,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 3
-map_Kd Bits.png
-map_Ks Bits-Spec.png
+map_Kd /home/mathis/github/BasicRaytracer/assets/vion-highres/Bits.png
+map_Ks /home/mathis/github/BasicRaytracer/assets/vion-highres/Bits-Spec.png
 
 newmtl CockpitGlass
 Ns 0.000000
@@ -28,5 +28,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 3
-map_Kd Color.png
-map_Ks Main-Spec.png
+map_Kd /home/mathis/github/BasicRaytracer/assets/vion-highres/Color.png
+map_Ks /home/mathis/github/BasicRaytracer/assets/vion-highres/Main-Spec.png
