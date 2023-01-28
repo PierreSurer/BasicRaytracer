@@ -26,7 +26,7 @@ struct HitParams
 {
     const Object* obj = nullptr;
     glm::dvec3 normal = glm::dvec3(0.0);
-    glm::dvec2 tex_coords = glm::dvec3(0.0);
+    glm::dvec2 tex_coords = glm::dvec2(0.0);
 };
 
 class BaseHit

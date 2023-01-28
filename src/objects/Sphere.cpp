@@ -6,7 +6,8 @@ using namespace glm;
 Sphere::Sphere(dvec3 position, double r, dvec3 rotation)
     : position(position), rotation(rotation), r(r)
 {
-    setVelocity(glm::dvec3(40.0, 0.0, 0.0));
+    setVelocity(glm::dvec3(0.0, 0.0, 0.0));
+
  }
 
 std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
@@ -31,7 +32,13 @@ std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
 
     dvec3 intersectionPoint = ray.at(t);
     dvec3 N = (intersectionPoint - pos) / r;
-    dvec3 uv = dvec3(0.0); // TODO
+
+    dquat rot = dquat({rotation.x, rotation.y, -rotation.z});
+    dvec3 uvN = mat3_cast(rot) * N;
+    dvec2 uv = dvec2(0.0);
+
+    uv.x = atan2(uvN.z, -uvN.x) / (2 * glm::pi<double>()) + 0.5;
+    uv.y = acos(-uvN.y) / glm::pi<double>();
 
     return std::make_unique<Hit>(t, HitParams{ this, N, uv });
 }

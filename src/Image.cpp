@@ -8,6 +8,8 @@
 */
 void Image::setSize(int width, int height)
 {
+    if(width == 0 || height == 0)
+        throw std::runtime_error("Error in img size");
     _width = width;
     _height = height;
     _pixel.resize(size() * 4);
@@ -15,17 +17,17 @@ void Image::setSize(int width, int height)
 }
 
 
-void Image::writePng(std::string const& filename)
+void Image::writePng(std::filesystem::path const& filename)
 {
-    LodePNG::encode(filename, _pixel, _width, _height);
+    LodePNG::encode(filename.string(), _pixel, _width, _height);
 }
 
 
-void Image::readPng(std::string const& filename)
+void Image::readPng(std::filesystem::path const& filename)
 {
     std::vector<unsigned char> buffer, image;
     //load the image file with given filename
-    LodePNG::loadFile(buffer, filename);
+    LodePNG::loadFile(buffer, filename.string());
 
     //decode the png
     LodePNG::Decoder decoder;

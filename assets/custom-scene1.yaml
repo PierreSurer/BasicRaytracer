@@ -13,7 +13,7 @@
 #  it should be clear that the #-character can be used to insert comments.
 
 SuperSampling:
-  factor: 4
+  factor: 32
 
 RenderMode: 'color'
 
@@ -30,7 +30,7 @@ Lights:
 Objects:
 
 - type: mesh
-  file: "vion-lowres/vion.obj"
+  file: "vion-highres/vion.obj"
   rotation: [90, 0, 0]
   position: [0, 0, 300]
   scale: [20, 20, 20]
@@ -42,7 +42,7 @@ Objects:
     n: 8
 
 - type: mesh
-  file: "vion-lowres/propeller.obj"
+  file: "vion-highres/propeller.obj"
   rotation: [90, 180, 0]
   position: [0, 0, 300]
   scale: [20, 20, 20]

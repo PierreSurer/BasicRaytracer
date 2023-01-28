@@ -16,4 +16,5 @@ private:
     const glm::dvec3 position;
     const glm::dvec3 rotation;
     const double r;
+
 };

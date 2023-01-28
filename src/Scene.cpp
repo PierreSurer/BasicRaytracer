@@ -57,6 +57,11 @@ std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node) const
         node["ior"] >> m->ior;
         m->ior = std::max(m->ior, 1.0);
     }
+    if (node.FindValue("texture")) {
+        std::string filename;
+        node["texture"] >> filename;
+        m->texture = std::make_shared<Image>((assetsDir / filename).string());
+    }
     return m;
 }
 
@@ -69,11 +74,13 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     auto material = parseMaterial(node["material"]);
 
     if (objectType == "sphere") {
-        glm::dvec3 pos;
+        glm::dvec3 pos, rot = glm::dvec3(0.0);
         double r;
         node["position"] >> pos;
         node["radius"] >> r;
-        returnObject = std::make_unique<Sphere>(pos, r);
+
+        if (node.FindValue("rotation")) node["rotation"] >> rot;
+        returnObject = std::make_unique<Sphere>(pos, r, radians(rot));
     }
     else if (objectType == "box") {
         glm::dvec3 pos, rot, size;
