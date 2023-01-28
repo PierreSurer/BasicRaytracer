@@ -21,7 +21,6 @@ public:
     void setVelocity(glm::dvec3 const& value) {velocity = value;}
 
 protected:
-    AABB aabb;
     glm::dvec3 angularVelocity; //in rad/s
     glm::dvec3 velocity; //in m/s
 };

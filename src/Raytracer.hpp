@@ -23,6 +23,9 @@ private:
     Color traceDepth(const Scene &scene, const Ray &ray);
     Color traceNormals(const Scene &scene, const Ray &ray);
 
+    template<RenderMode Mode>
+    void render(const Scene &scene, Image &img);
+
     SimplexNoise noise;
 
     double apertureTime;

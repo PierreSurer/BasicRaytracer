@@ -203,7 +203,22 @@ Color Raytracer::traceNormals(const Scene &scene, const Ray &ray)
     return Color(1.0 + N) * 0.5;
 }
 
-void Raytracer::render(const Scene &scene, Image& img)
+void Raytracer::render(const Scene& scene, Image& img) {
+    switch (scene.params.mode)
+    {
+    case RenderMode::PHONG:
+        return render<RenderMode::PHONG>(scene, img);
+    case RenderMode::DEPTH:
+        return render<RenderMode::DEPTH>(scene, img);
+    case RenderMode::NORMAL:
+        return render<RenderMode::NORMAL>(scene, img);
+    default:
+        throw std::runtime_error("No render type matched");
+    } 
+}
+
+template <RenderMode Mode>
+void Raytracer::render(const Scene& scene, Image& img)
 {
     const TraceParameters &params = scene.params;
     int msaa = params.superSampling;
@@ -238,20 +253,17 @@ void Raytracer::render(const Scene &scene, Image& img)
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
             Color col(0.0);
             Ray ray(scene.camera.getPosition(), dir, apertureTime * (double)rand() / RAND_MAX);
-            switch (params.mode)
-            {
-            case RenderMode::PHONG:
+
+            // this branching is compile-time thanks to the template and constexpr.
+            if constexpr (Mode == RenderMode::PHONG)
                 col = traceColor(scene, ray);
-                break;
-            case RenderMode::DEPTH:
+            else if constexpr (Mode == RenderMode::DEPTH)
                 col = traceDepth(scene, ray);
-                break;
-            case RenderMode::NORMAL:
+            else if constexpr (Mode == RenderMode::NORMAL)
                 col = traceNormals(scene, ray);
-                break;
-            default:
+            else
                 throw std::runtime_error("No render type matched");
-            } 
+
             col = clamp(col, 0.0, 1.0);
             finalColor += col;
         }
