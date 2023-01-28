@@ -6,7 +6,7 @@
 class Box : public Object
 {
 public:
-    Box(glm::dmat4 model = glm::dmat4(1.0));
+    Box();
 
     std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
 

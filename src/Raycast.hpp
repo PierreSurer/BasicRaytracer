@@ -41,7 +41,6 @@ public:
 
     virtual ~BaseHit() = default;
 
-
     virtual HitParams params() const = 0;
 };
 

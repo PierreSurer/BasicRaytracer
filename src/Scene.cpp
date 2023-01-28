@@ -9,6 +9,7 @@
 #include "objects/Object.hpp"
 #include "objects/Sphere.hpp"
 #include "objects/Light.hpp"
+#include "objects/TransformNode.hpp"
 #include "objects/Triangle.hpp"
 
 #include <ctype.h>
@@ -68,14 +69,14 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 
     auto material = parseMaterial(node["material"]);
 
-    glm::dmat4 mat(1.0);
+    glm::dmat4 transform(1.0);
     {
         glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
         if (node.FindValue("position")) node["position"] >> loc;
         if (node.FindValue("rotation")) node["rotation"] >> rot;
         if (node.FindValue("scale")) node["scale"] >> sca;
         rot = radians(rot);
-        mat = glm::translate(glm::dmat4(1.0), loc)
+        transform = glm::translate(glm::dmat4(1.0), loc)
             * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
             * glm::scale(glm::dmat4(1.0), sca);
     }
@@ -83,18 +84,18 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     if (objectType == "sphere") {
         double radius(1.0);
         if (node.FindValue("radius")) node["radius"] >> radius;
-        mat *= glm::scale(glm::dmat4(1.0), glm::dvec3(radius));
-        returnObject = std::make_unique<Sphere>(mat);
+        transform *= glm::scale(glm::dmat4(1.0), glm::dvec3(radius));
+        returnObject = std::make_unique<Sphere>();
     }
     else if (objectType == "box") {
-        returnObject = std::make_unique<Box>(mat);
+        returnObject = std::make_unique<Box>();
     }
     else if (objectType == "cylinder") {
         double height(1.0), radius(1.0);
         if (node.FindValue("height")) node["height"] >> height;
         if (node.FindValue("radius")) node["radius"] >> radius;
-        mat *= glm::scale(glm::dmat4(1.0), glm::dvec3(height, radius, radius));
-        returnObject = std::make_unique<Cylinder>(mat);
+        transform *= glm::scale(glm::dmat4(1.0), glm::dvec3(height, radius, radius));
+        returnObject = std::make_unique<Cylinder>();
     }
     else if (objectType == "triangle") {
         glm::dvec3 p1;
@@ -107,24 +108,16 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     }
     else if (objectType == "mesh") {
         std::string path;
-        glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
         node["file"] >> path;
-        if (node.FindValue("position")) node["position"] >> loc;
-        if (node.FindValue("rotation")) node["rotation"] >> rot;
-        if (node.FindValue("scale")) node["scale"] >> sca;
-        rot = radians(rot);
-        glm::dmat4 mat = glm::translate(glm::dmat4(1.0), loc)
-                       * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
-                       * glm::scale(glm::dmat4(1.0), sca);
         path = (assetsDir / path).string();
         Mesh mesh = parseObj(path);
-        mesh.transform(mat);
         mesh.optimize();
         returnObject = std::make_unique<Mesh>(std::move(mesh));
     }
 
     if (returnObject) {
         returnObject->material = std::move(material);
+        returnObject = std::make_unique<TransformNode>(std::move(returnObject), transform);
     }
 
     return returnObject;

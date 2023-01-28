@@ -3,16 +3,11 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
-Sphere::Sphere(dmat4 model)
-{
-    setModel(model);
-    velocity = glm::dvec3(40.0, 0.0, 0.0);
-}
+Sphere::Sphere()
+{ }
 
-std::unique_ptr<BaseHit> Sphere::intersect(const Ray& globalRay) const
+std::unique_ptr<BaseHit> Sphere::intersect(const Ray& ray) const
 {
-    Ray ray = computeLocalRay(globalRay);
-
     // dvec3 pos = velocity * ray.time;
     dvec3 OC = -ray.O;
 
@@ -32,12 +27,8 @@ std::unique_ptr<BaseHit> Sphere::intersect(const Ray& globalRay) const
         return Hit::NO_HIT();
     }
 
-    dvec3 intersectionPoint = ray.at(t);
-    dvec3 normal = normalize(normModel * intersectionPoint);
+    dvec3 normal = ray.at(t);
     dvec3 uv = dvec3(0.0); // TODO
-
-    // transform local time back to global space
-    t *= length(dmat3(model) * ray.D);
 
     return std::make_unique<Hit>(t, HitParams{ this, normal, uv });
 }

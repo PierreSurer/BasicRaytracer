@@ -5,7 +5,7 @@
 class Sphere : public Object
 {
 public:
-    Sphere(glm::dmat4 model = glm::dmat4(1.0));
+    Sphere();
 
     std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
     

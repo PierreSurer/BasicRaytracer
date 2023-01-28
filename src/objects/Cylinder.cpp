@@ -5,14 +5,12 @@
 
 using namespace glm;
 
-Cylinder::Cylinder(dmat4 model)
+Cylinder::Cylinder()
     : position(0.0), rotation(0.0), height(1.0), radius(1.0)
 {
     dquat rot = dquat(rotation);
     orientation = mat3_cast(rot);
     inv_orientation = inverse(orientation);
-
-    setModel(model);
 }
 
 std::unique_ptr<BaseHit> Cylinder::intersect(const Ray &ray) const

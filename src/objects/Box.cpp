@@ -8,15 +8,11 @@
 
 using namespace glm;
 
-Box::Box(dmat4 model)
-{
-    setModel(model);
-}
+Box::Box()
+{ }
 
-std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
+std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
 {
-    Ray ray = computeLocalRay(globalRay);
-
     dvec3 tMin = (-dvec3(1.0) - ray.O) / ray.D;
     dvec3 tMax = (dvec3(1.0)  - ray.O) / ray.D;
     dvec3 t1 = min(tMin, tMax);
@@ -27,13 +23,8 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
 
     dvec3 normal = sign(ray.D) * dvec3(equal(t1, dvec3(tNear))) * (tNear < 0 ? 1.0 : -1.0);
 
-    normal = normalize(normModel * normal);
-
     // TODO uv
     dvec2 uv(0.0);
-
-    // transform local time back to global space
-    tNear *= length(dmat3(model) * ray.D);
 
     return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
 }

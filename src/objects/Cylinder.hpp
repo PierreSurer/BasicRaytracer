@@ -5,7 +5,7 @@
 class Cylinder : public Object
 {
 public:
-    Cylinder(glm::dmat4 model = glm::dmat4(1.0));
+    Cylinder();
 
     std::unique_ptr<BaseHit> intersect(const Ray &ray) const override;
 
