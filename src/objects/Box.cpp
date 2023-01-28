@@ -24,21 +24,8 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
     double tNear = compMax(t1);
     double tFar = compMin(t2);
     if(tNear > tFar || tFar < 0.0) return Hit::NO_HIT();
-    
-    dvec3 normal;
 
-    // TODO: can be optimized
-    // dvec3 N = sign(ray.D) * dvec3(equal(t1, dvec3(tNear))) * (tNear < 0 ? 1.0 : -1.0);
-
-    if(tNear >= 0.0) { // if outside box
-        if(t1.x == tNear)      normal = {-sign(ray.D.x), 0.0, 0.0};
-        else if(t1.y == tNear) normal = {0.0, -sign(ray.D.y), 0.0};
-        else                   normal = {0.0, 0.0, -sign(ray.D.z)};
-    } else {
-        if(t2.x == tFar)       normal = {sign(ray.D.x), 0.0, 0.0};
-        else if(t2.y == tFar)  normal = {0.0, sign(ray.D.y), 0.0};
-        else                   normal = {0.0, 0.0, sign(ray.D.z)};
-    }
+    dvec3 normal = sign(ray.D) * dvec3(equal(t1, dvec3(tNear))) * (tNear < 0 ? 1.0 : -1.0);
 
     normal = normalize(normModel * normal);
 
@@ -46,7 +33,7 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
     dvec2 uv(0.0);
 
     // transform local time back to global space
-    tNear *= length(model * vec4(ray.D, 0.0));
+    tNear *= length(dmat3(model) * ray.D);
 
     return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
 }
