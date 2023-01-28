@@ -11,6 +11,7 @@
 #include "objects/Light.hpp"
 #include "objects/TransformNode.hpp"
 #include "objects/Triangle.hpp"
+#include "objects/Group.hpp"
 
 #include <ctype.h>
 #include <fstream>
@@ -49,15 +50,13 @@ Scene::~Scene() {
 std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node) const
 {
     std::unique_ptr<Material> m = std::make_unique<Material>();
-    node["color"] >> m->color;
-    node["ka"] >> m->ka;
-    node["kd"] >> m->kd;
-    node["ks"] >> m->ks;
-    node["n"] >> m->n;
-    if (node.FindValue("ior")) {
-        node["ior"] >> m->ior;
-        m->ior = std::max(m->ior, 1.0);
-    }
+    if (node.FindValue("color")) node["color"] >> m->color;
+    if (node.FindValue("ka")) node["ka"] >> m->ka;
+    if (node.FindValue("kd")) node["kd"] >> m->kd;
+    if (node.FindValue("ks")) node["ks"] >> m->ks;
+    if (node.FindValue("n")) node["n"] >> m->n;
+    if (node.FindValue("ior")) node["ior"] >> m->ior;
+    m->ior = std::max(m->ior, 1.0);
     return m;
 }
 
@@ -67,7 +66,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     std::string objectType;
     node["type"] >> objectType;
 
-    auto material = parseMaterial(node["material"]);
+    auto material = node.FindValue("material") ? parseMaterial(node["material"]) : DEFAULT_MATERIAL;
 
     glm::dmat4 transform(1.0);
     {
@@ -113,6 +112,16 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         Mesh mesh = parseObj(path);
         mesh.optimize();
         returnObject = std::make_unique<Mesh>(std::move(mesh));
+    }
+    else if (objectType == "group") {
+        Group::ObjCollection objs;
+        for (auto const& o : node["children"]) {
+            auto obj = parseObject(o);
+            if (obj) {
+                objs.push_back(std::move(obj));
+            }
+        }
+        returnObject = std::make_unique<Group>(std::move(objs));
     }
 
     if (returnObject) {
@@ -208,8 +217,8 @@ bool Scene::readScene(const std::string& inputFilename)
                 std::cerr << "Error: expected a sequence of objects." << std::endl;
                 return false;
             }
-            for(YAML::Iterator it=sceneObjects.begin(); it!=sceneObjects.end(); ++it) {
-                std::unique_ptr<Object> obj = parseObject(*it);
+            for(auto const& o : sceneObjects) {
+                std::unique_ptr<Object> obj = parseObject(o);
                 // Only add object if it is recognized
                 if (obj) {
                     objects.push_back(std::move(obj));

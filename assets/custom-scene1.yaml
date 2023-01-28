@@ -29,29 +29,16 @@ Lights:
 
 Objects:
 
-- type: mesh
-  file: "vion-lowres/vion.obj"
-  rotation: [90, 180, 0]
-  position: [0, 0, 300]
-  scale: [20, 20, 20]
-  material: # cyan
-    color: [1.0,1.0,1.0]
-    ka: 0.2
-    kd: 0.3
-    ks: 0.7
-    n: 8
 
-- type: mesh
-  file: "vion-lowres/propeller.obj"
+- type: group
   rotation: [90, 180, 0]
   position: [0, 0, 300]
   scale: [20, 20, 20]
-  material: # cyan
-    color: [1.0,1.0,1.0]
-    ka: 0.2
-    kd: 0.3
-    ks: 0.7
-    n: 8
+  children:
+  - type: mesh
+    file: "vion-lowres/vion.obj"
+  - type: mesh
+    file: "vion-lowres/propeller.obj"
 
   # background sphere
 - type: sphere
