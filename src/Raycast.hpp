@@ -11,9 +11,10 @@ class Ray
 public:
     glm::dvec3 O;
     glm::dvec3 D;
+    double delay;
 
-    Ray(const glm::dvec3 &from, const glm::dvec3 &dir)
-        : O(from), D(dir)
+    Ray(const glm::dvec3 &from, const glm::dvec3 &dir, double delay = 0.0)
+        : O(from), D(dir), delay(delay)
     { }
 
     glm::dvec3 at(double t) const

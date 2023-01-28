@@ -31,7 +31,7 @@ Objects:
 
 - type: mesh
   file: "vion-lowres/vion.obj"
-  rotation: [90, 180, 0]
+  rotation: [90, 0, 0]
   position: [0, 0, 300]
   scale: [20, 20, 20]
   material: # cyan

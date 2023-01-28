@@ -5,11 +5,14 @@ using namespace glm;
 
 Sphere::Sphere(dvec3 position, double r, dvec3 rotation)
     : position(position), rotation(rotation), r(r)
-{ }
+{
+    setVelocity(glm::dvec3(40.0, 0.0, 0.0));
+ }
 
 std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
 {
-    dvec3 OC = position - ray.O;
+    dvec3 pos = position + velocity * ray.delay;
+    dvec3 OC = pos - ray.O;
     // Min distance between ray and object position
     double h_2 = length2(cross(ray.D, OC));
     double r_2 = length2(r);
@@ -27,7 +30,7 @@ std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
     }
 
     dvec3 intersectionPoint = ray.at(t);
-    dvec3 N = (intersectionPoint - position) / r;
+    dvec3 N = (intersectionPoint - pos) / r;
     dvec3 uv = dvec3(0.0); // TODO
 
     return std::make_unique<Hit>(t, HitParams{ this, N, uv });

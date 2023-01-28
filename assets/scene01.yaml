@@ -18,6 +18,8 @@ Camera:
   up: [0, 1, 0]
   fov: 70
 
+SuperSampling:
+  factor: 40
 
 Lights:
 - position: [0,0,1500]
@@ -63,7 +65,7 @@ Objects:
     kd: 0.8
     ks: 0.0
     n: 1
-    ior: 2.0
+    ior: 1.0
 - type: sphere
   position: [-90,-70,200]
   radius: 50

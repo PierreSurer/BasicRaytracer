@@ -25,4 +25,6 @@ private:
 
     SimplexNoise noise;
 
+    double apertureTime;
+
 };

@@ -17,6 +17,11 @@ public:
 
     virtual AABB computeAABB() const = 0;
 
+    void setAngularVelocity(glm::dvec3 const& value) {angularVelocity = value;}
+    void setVelocity(glm::dvec3 const& value) {velocity = value;}
+
 protected:
     AABB aabb;
+    glm::dvec3 angularVelocity; //in rad/s
+    glm::dvec3 velocity; //in m/s
 };

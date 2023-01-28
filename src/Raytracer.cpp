@@ -9,8 +9,9 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
-Raytracer::Raytracer() {
+Raytracer::Raytracer() : apertureTime(1.0) {
     noise.seed(0);
+    srand(0);
 }
 
 Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state)
@@ -64,7 +65,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         bool inShadow = false;
 
         if (params.shadows) {
-            Ray shadowRay(hitPoint + EPS * lightDir, lightDir);
+            Ray shadowRay(hitPoint + EPS * lightDir, lightDir, ray.delay);
             for (const auto &o : scene.objects) {
                 auto shadowHit = o->intersect(shadowRay);
                 if(shadowHit->t <= length(lightVector)) {
@@ -100,7 +101,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
         dvec3 reflectedDir = reflect(ray.D, hitprop.normal);
-        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir);
+        Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir, ray.delay);
         reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
     
@@ -108,11 +109,11 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
         dvec3 refractionDir = refract(ray.D, hitprop.normal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
-            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir);
+            Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir, ray.delay);
             auto refractionHit = hitprop.obj->intersect(refractionRay);
             if(!refractionHit->no_hit) {
                 refractionDir = refract(refractionRay.D, -refractionHit->params().normal, mat->ior);
-                refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir);
+                refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir, ray.delay);
             }
             TraceState nextState(state);
             nextState.bounces++;
@@ -236,7 +237,7 @@ void Raytracer::render(const Scene &scene, Image& img)
             double pyy = dy + (1.0 + 2.0 * y) * offset;
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
             Color col(0.0);
-            Ray ray(scene.camera.getPosition(), dir);
+            Ray ray(scene.camera.getPosition(), dir, apertureTime * (double)rand() / RAND_MAX);
             switch (params.mode)
             {
             case RenderMode::PHONG:
