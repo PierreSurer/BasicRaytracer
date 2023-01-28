@@ -19,7 +19,7 @@ Camera:
   fov: 70
 
 SuperSampling:
-  factor: 40
+  factor: 4
 
 Lights:
 - position: [0,0,1500]
@@ -58,9 +58,11 @@ Objects:
     ior: 1.0
 - type: sphere
   position: [-60,20,400]
+  rotation: [90, 60, 0]
   radius: 50
   material: # yellow
-    color: [1.0,0.8,0.0]
+    texture: earth.png
+    color: [1.0,1.0,1.0]
     ka: 0.2
     kd: 0.8
     ks: 0.0

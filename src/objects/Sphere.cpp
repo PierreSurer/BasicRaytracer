@@ -28,12 +28,16 @@ std::unique_ptr<BaseHit> Sphere::intersect(const Ray& ray) const
     }
 
     dvec3 normal = ray.at(t);
-    dvec3 uv = dvec3(0.0); // TODO
+
+    dvec3 uv = dvec3(0.0);
+    uv.x = atan2(normal.z, -normal.x) / (2 * glm::pi<double>()) + 0.5;
+    uv.y = acos(-normal.y) / glm::pi<double>();
 
     return std::make_unique<Hit>(t, HitParams{ this, normal, uv });
 }
 
-AABB Sphere::computeAABB() const {
+AABB Sphere::computeAABB() const
+{
     AABB aabb;
     // TODO
     // aabb.first = position - r;

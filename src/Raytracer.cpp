@@ -9,7 +9,7 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
-Raytracer::Raytracer() : apertureTime(1.0) {
+Raytracer::Raytracer() : apertureTime(0.0) {
     noise.seed(0);
     srand(0);
 }

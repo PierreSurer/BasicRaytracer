@@ -13,7 +13,7 @@
 #  it should be clear that the #-character can be used to insert comments.
 
 SuperSampling:
-  factor: 4
+  factor: 32
 
 RenderMode: 'color'
 

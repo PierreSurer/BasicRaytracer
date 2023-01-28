@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <glm.hpp>
+#include <filesystem>
 
 typedef glm::dvec3 Color;
 
@@ -15,7 +16,7 @@ public:
         setSize(width, height);    //creates array
     }
 
-    Image(std::string const& imageFilename): Image()
+    Image(std::filesystem::path const& imageFilename)
     {
         readPng(imageFilename);
     }
@@ -37,8 +38,8 @@ public:
     inline unsigned int size() const   { return _width * _height; }
 
     // File stuff
-    void writePng(std::string const& filename);
-    void readPng(std::string const& filename);
+    void writePng(std::filesystem::path const& filename);
+    void readPng(std::filesystem::path const& filename);
 
     inline std::vector<unsigned char> getPixels() const { return _pixel; };
 

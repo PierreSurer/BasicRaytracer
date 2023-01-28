@@ -55,8 +55,15 @@ std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node) const
     if (node.FindValue("kd")) node["kd"] >> m->kd;
     if (node.FindValue("ks")) node["ks"] >> m->ks;
     if (node.FindValue("n")) node["n"] >> m->n;
-    if (node.FindValue("ior")) node["ior"] >> m->ior;
-    m->ior = std::max(m->ior, 1.0);
+    if (node.FindValue("ior")) {
+        node["ior"] >> m->ior;
+        m->ior = std::max(m->ior, 1.0);
+    }
+    if (node.FindValue("texture")) {
+        std::string filename;
+        node["texture"] >> filename;
+        m->texture = std::make_shared<Image>((assetsDir / filename).string());
+    }
     return m;
 }
 
@@ -247,4 +254,3 @@ bool Scene::readScene(const std::string& inputFilename)
 
     std::cout << "YAML parsing results: " << objects.size() << " objects read - " ;
     return true;
-}
