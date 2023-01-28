@@ -41,7 +41,6 @@ private:
     std::unique_ptr<BaseHit> recurse_intersect(const BVH& bvh, const Ray &ray) const;
     std::unique_ptr<BaseHit> intersect_indices(const std::vector<size_t> indices, const Ray &ray) const;
 
-    // (marked mutable as this is opaque from outsider's perspective)
     bool dirty = true;
     BVH bvh;
 };

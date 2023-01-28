@@ -37,25 +37,26 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
                 return (ray.D + 1.0) * 0.5;
             case Sky::NIGHT:
             {
-                float y = tan(ray.D.y * glm::pi<float>());
+                // float y = tan(ray.D.y * glm::pi<float>());
                 return clamp(Color((double)noise.simplex2(ray.D * 15.0)) - 0.9, 0.0, 1.0) * 8.0 + clamp(Color((double)noise.simplex2(180.0 + ray.D * 300.0)) - 0.95, 0.0, 1.0) * 15.0;
             }    
-            default: //Or sky::NONE
+            case Sky::NONE:
+            default:
                 return Color(0.0);
         }
     }
-        
 
-    auto const& hitprop = hit->params();
-    auto const& mat = hitprop.obj->material;   //the hit objects material
-    dvec3 hitPoint = ray.at(hit->t);        //the hit point
+
+    auto const& hitProp = hit->params();
+    auto const& mat = hitProp.obj->material;
+    dvec3 hitPoint = ray.at(hit->t);
 
     Color diffuseColor(0.0), specularColor(0.0);
     Color reflectionColor(0.0), refractionColor(0.0);
     Color finalColor(0.0);
 
     Color baseColor = mat->texture ?
-        mat->texture->sample(hitprop.tex_coords) :
+        mat->texture->sample(hitProp.tex_coords) :
         mat->color;
 
     for (auto const& light : scene.lights) {
@@ -77,12 +78,12 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 
         if (!inShadow) {
             // Diffuse color calculation
-            diffuseColor += baseColor * light->color * clamp(dot(hitprop.normal, lightDir), 0.0, 1.0);
+            diffuseColor += baseColor * light->color * clamp(dot(hitProp.normal, lightDir), 0.0, 1.0);
 
             // Specular color calculation using blinn-phong model
             // blinn
             dvec3 H = normalize(lightDir - ray.D);
-            double NdotH = clamp(dot(hitprop.normal, H), 0.0, 1.0);
+            double NdotH = clamp(dot(hitProp.normal, H), 0.0, 1.0);
             specularColor += light->color * pow(NdotH, 4.0 * mat->n);
             // phong
             // dvec3 R = reflect(-lightDir, hit.N);
@@ -100,17 +101,17 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         TraceState nextState(state);
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
-        dvec3 reflectedDir = reflect(ray.D, hitprop.normal);
+        dvec3 reflectedDir = reflect(ray.D, hitProp.normal);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir, ray.delay);
         reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
     
     // refraction
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
-        dvec3 refractionDir = refract(ray.D, hitprop.normal, 1.0 / mat->ior);
+        dvec3 refractionDir = refract(ray.D, hitProp.normal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
             Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir, ray.delay);
-            auto refractionHit = hitprop.obj->intersect(refractionRay);
+            auto refractionHit = hitProp.obj->intersect(refractionRay);
             if(!refractionHit->no_hit) {
                 refractionDir = refract(refractionRay.D, -refractionHit->params().normal, mat->ior);
                 refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir, ray.delay);
@@ -138,7 +139,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     else {
         double kr = mat->ior;
         // fresnel
-        double cosi = dot(ray.D, hitprop.normal);
+        double cosi = dot(ray.D, hitProp.normal);
         double etai = 1, etat = mat->ior;
         if (cosi > 0) { std::swap(etai, etat); }
         // Compute sini using Snell's law

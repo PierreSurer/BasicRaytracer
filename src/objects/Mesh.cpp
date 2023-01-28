@@ -2,6 +2,7 @@
 #include "Triangle.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <numeric>
 #include <glm/gtx/component_wise.hpp>
@@ -156,9 +157,7 @@ void Mesh::transform(const dmat4& mat, const dmat4& norm_mat) {
 
 std::unique_ptr<BaseHit> Mesh::intersect(const Ray& ray) const
 {
-    if (dirty) {
-        throw std::runtime_error("mesh was not optimized");
-    }
+    assert(!dirty && "mesh was not optimized");
 
     // use the acceleration structure
     return recurse_intersect(bvh, ray);

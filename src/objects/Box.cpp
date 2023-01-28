@@ -1,63 +1,69 @@
 #include "Box.hpp"
 #include <math.h>
-#include <glm/gtc/quaternion.hpp>
 
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/extended_min_max.hpp>
 #include <glm/gtx/component_wise.hpp>
 
 using namespace glm;
 
-Box::Box(glm::dvec3 position, glm::dvec3 rotation, glm::dvec3 size)
-    : position(position), rotation(rotation), size(size / 2.0)
-{ 
-    dquat rot = dquat(rotation);
-    orientation = mat3_cast(rot);
-    inv_orientation = inverse(orientation);
+Box::Box(dmat4 model)
+{
+    setModel(model);
 }
 
-std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
+std::unique_ptr<BaseHit> Box::intersect(const Ray &globalRay) const
 {
-    dvec3 localOrigin = inv_orientation * (ray.O - position);
-    dvec3 localDirection = inv_orientation * ray.D;
+    Ray ray = computeLocalRay(globalRay);
+    // Ray ray = globalRay;
 
-    dvec3 tMin = ((-size) - localOrigin) / localDirection;
-    dvec3 tMax = ((+size) - localOrigin) / localDirection;
+    dvec3 tMin = (-dvec3(1.0) - ray.O) / ray.D;
+    dvec3 tMax = (dvec3(1.0)  - ray.O) / ray.D;
     dvec3 t1 = min(tMin, tMax);
     dvec3 t2 = max(tMin, tMax);
     double tNear = compMax(t1);
     double tFar = compMin(t2);
     if(tNear > tFar || tFar < 0.0) return Hit::NO_HIT();
     
-    dvec3 N;
+    dvec3 normal;
+
+    // TODO: can be optimized
+    // dvec3 N = sign(ray.D) * dvec3(equal(t1, dvec3(tNear))) * (tNear < 0 ? 1.0 : -1.0);
 
     if(tNear >= 0.0) { // if outside box
-        if(t1.x == tNear)      N = {-sign(localDirection.x), 0.0, 0.0};
-        else if(t1.y == tNear) N = {0.0, -sign(localDirection.y), 0.0};
-        else                   N = {0.0, 0.0, -sign(localDirection.z)};
+        if(t1.x == tNear)      normal = {-sign(ray.D.x), 0.0, 0.0};
+        else if(t1.y == tNear) normal = {0.0, -sign(ray.D.y), 0.0};
+        else                   normal = {0.0, 0.0, -sign(ray.D.z)};
     } else {
-        if(t2.x == tFar)       N = {sign(localDirection.x), 0.0, 0.0};
-        else if(t2.y == tFar)  N = {0.0, sign(localDirection.y), 0.0};
-        else                   N = {0.0, 0.0, sign(localDirection.z)};
+        if(t2.x == tFar)       normal = {sign(ray.D.x), 0.0, 0.0};
+        else if(t2.y == tFar)  normal = {0.0, sign(ray.D.y), 0.0};
+        else                   normal = {0.0, 0.0, sign(ray.D.z)};
     }
 
-    return std::make_unique<Hit>(tNear, HitParams{ this, orientation * N, dvec3(0.0) }); // TODO uvs
+    normal = normModel * normal;
 
-    
+    // TODO uv
+    dvec2 uv(0.0);
+
+    return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
 }
 
-AABB Box::computeAABB() const {
+AABB Box::computeAABB() const
+{
     AABB aabb;
-    dvec3 s0 = orientation * dvec3(size.x / 2.0, size.x / 2.0, size.x / 2.0);
-    dvec3 s1 = orientation * dvec3(size.x / 2.0, size.x / 2.0, -size.x / 2.0);
-    dvec3 s2 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, size.x / 2.0);
-    dvec3 s3 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
-    dvec3 s4 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, size.x / 2.0);
-    dvec3 s5 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, -size.x / 2.0);
-    dvec3 s6 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, size.x / 2.0);
-    dvec3 s7 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
+    // TODO
+    // dvec3 s0 = orientation * dvec3(size.x / 2.0, size.x / 2.0, size.x / 2.0);
+    // dvec3 s1 = orientation * dvec3(size.x / 2.0, size.x / 2.0, -size.x / 2.0);
+    // dvec3 s2 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, size.x / 2.0);
+    // dvec3 s3 = orientation * dvec3(size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
+    // dvec3 s4 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, size.x / 2.0);
+    // dvec3 s5 = orientation * dvec3(-size.x / 2.0, size.x / 2.0, -size.x / 2.0);
+    // dvec3 s6 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, size.x / 2.0);
+    // dvec3 s7 = orientation * dvec3(-size.x / 2.0, -size.x / 2.0, -size.x / 2.0);
 
-    aabb.first = position + glm::min(glm::min(s0, s1, s2, s3), glm::min(s4, s5, s6, s7));
-    aabb.second = position + glm::max(glm::max(s0, s1, s2, s3), glm::max(s4, s5, s6, s7));
+    // aabb.first = position + glm::min(glm::min(s0, s1, s2, s3), glm::min(s4, s5, s6, s7));
+    // aabb.second = position + glm::max(glm::max(s0, s1, s2, s3), glm::max(s4, s5, s6, s7));
 
     return aabb;
 }

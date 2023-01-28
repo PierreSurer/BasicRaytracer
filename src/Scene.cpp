@@ -76,20 +76,24 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         returnObject = std::make_unique<Sphere>(pos, r);
     }
     else if (objectType == "box") {
-        glm::dvec3 pos, rot, size;
-        node["position"] >> pos;
+        glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
+        node["position"] >> loc;
         node["rotation"] >> rot;
-        node["size"] >> size;
-        returnObject = std::make_unique<Box>(pos, radians(rot), size);
+        node["size"] >> sca;
+        rot = radians(rot);
+        glm::dmat4 mat = glm::translate(glm::dmat4(1.0), loc)
+                       * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
+                       * glm::scale(glm::dmat4(1.0), sca);
+        returnObject = std::make_unique<Box>(mat);
     }
     else if (objectType == "cylinder") {
-        glm::dvec3 pos, rot;
+        glm::dvec3 loc(0.0), rot(0.0);
         double height, radius;
-        node["position"] >> pos;
+        node["position"] >> loc;
         node["rotation"] >> rot;
         node["height"] >> height;
         node["radius"] >> radius;
-        returnObject = std::make_unique<Cylinder>(pos, radians(rot), height, radius);
+        returnObject = std::make_unique<Cylinder>(loc, radians(rot), height, radius);
     }
     else if (objectType == "triangle") {
         glm::dvec3 p1;

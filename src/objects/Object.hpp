@@ -10,6 +10,8 @@ using AABB = std::pair<glm::dvec3, glm::dvec3>;
 class Object {
 public:
     std::shared_ptr<Material> material = DEFAULT_MATERIAL;
+    glm::dvec3 angularVelocity = glm::dvec3(0.0); //in rad/s
+    glm::dvec3 velocity = glm::dvec3(0.0); //in m/s
 
     virtual ~Object() = default;
 
@@ -17,10 +19,11 @@ public:
 
     virtual AABB computeAABB() const = 0;
 
-    void setAngularVelocity(glm::dvec3 const& value) {angularVelocity = value;}
-    void setVelocity(glm::dvec3 const& value) {velocity = value;}
+    void setModel(glm::mat4 model);
 
 protected:
-    glm::dvec3 angularVelocity; //in rad/s
-    glm::dvec3 velocity; //in m/s
+    glm::dmat4 model = glm::dmat4(1.0);
+    glm::dmat4 invModel = glm::dmat4(1.0);
+    glm::dmat3 normModel = glm::dmat4(1.0); // transpose inverse (normal matrix)
+    Ray computeLocalRay(const Ray& globalRay) const;
 };

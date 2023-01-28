@@ -6,8 +6,8 @@ using namespace glm;
 Sphere::Sphere(dvec3 position, double r, dvec3 rotation)
     : position(position), rotation(rotation), r(r)
 {
-    setVelocity(glm::dvec3(40.0, 0.0, 0.0));
- }
+    velocity = glm::dvec3(40.0, 0.0, 0.0);
+}
 
 std::unique_ptr<BaseHit> Sphere::intersect(const Ray &ray) const
 {
