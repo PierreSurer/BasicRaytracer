@@ -1,5 +1,6 @@
 #include "TransformNode.hpp"
 
+#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_access.hpp>
 
 using namespace glm;
@@ -19,26 +20,28 @@ AABB TransformNode::computeAABB() const
 class NodeHit : public BaseHit
 {
 public:
-    NodeHit(const TransformNode* node, std::unique_ptr<BaseHit> hit);
+    NodeHit(const TransformNode* node, std::unique_ptr<BaseHit> hit, double time);
 
     HitParams params() const override;
 
 private:
     const TransformNode* node;
     std::unique_ptr<BaseHit> hit;
+    double time;
 };
 
 
-NodeHit::NodeHit(const TransformNode* node, std::unique_ptr<BaseHit> hit)
+NodeHit::NodeHit(const TransformNode* node, std::unique_ptr<BaseHit> hit, double time)
     // CAREFUL hit->t is used before hit is moved, so this is fine but changing
     // the code might lead to undefined behavior.
-    : BaseHit(hit->t), node(node), hit(std::move(hit))
+    : BaseHit(hit->t), node(node), hit(std::move(hit)), time(time)
 { }
 
 HitParams NodeHit::params() const
 {
     HitParams params = hit->params();
-    params.normal = normalize(node->model_inv_transp * params.normal);
+    dmat3 M = node->computeModelInv(time);
+    params.normal = normalize(params.normal * M);
     return params;
 }
 
@@ -51,23 +54,44 @@ std::unique_ptr<BaseHit> TransformNode::intersect(const Ray& globalRay) const
     }
     else {
         // spatial dilatation is uniform in a given direction (matrix transform)
-        hit->t *= length(model * localRay.D);
-        return std::make_unique<NodeHit>(this, std::move(hit));
+        dmat3 M = computeModel(globalRay.time);
+        hit->t *= length(M * localRay.D);
+        return std::make_unique<NodeHit>(this, std::move(hit), globalRay.time);
     }
 }
 
 Ray TransformNode::computeLocalRay(const Ray& globalRay) const
 {
-    dvec3 O = model_inv * (globalRay.O - position - velocity * globalRay.time);
-    dvec3 D = normalize(model_inv * globalRay.D);
+    dmat3 M = computeModelInv(globalRay.time);
+    dvec3 O = M * (globalRay.O - position - velocity * globalRay.time);
+    dvec3 D = normalize(M * dvec4(globalRay.D, 0.0));
+
     return Ray(O, D, globalRay.time);
 }
 
 void TransformNode::setModel(dmat4 M)
 {
     model = M;
-    model_inv = inverse(model);
-    model_inv_transp = transpose(model_inv);
+    modelInv = inverse(model);
     position = column(M, 3);
 }
 
+glm::dmat3 TransformNode::computeModel(double time) const
+{
+    auto angle = angularVelocity * time;
+    return dmat3(eulerAngleYXZ(angle.x, angle.y, angle.z)) * model;
+}
+glm::dmat3 TransformNode::computeModelInv(double time) const
+{
+    auto angle = -angularVelocity * time;
+    return modelInv * dmat3(eulerAngleYXZ(angle.x, angle.y, angle.z));
+}
+
+void TransformNode::setLinearVelocity(glm::dvec3 vel)
+{
+    velocity = vel;
+}
+void TransformNode::setAngularVelocity(glm::dvec3 vel)
+{
+    angularVelocity = vel;
+}

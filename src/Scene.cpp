@@ -138,7 +138,8 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 
     if (transform != glm::dmat4(1.0)) {
         returnObject = std::make_unique<TransformNode>(std::move(returnObject), transform);
-        ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 10.0);
+        // ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 10.0);
+        ((TransformNode*)returnObject.get())->setAngularVelocity({ 0.0, 0.0, glm::radians(10.0) });
     }
 
     return returnObject;
