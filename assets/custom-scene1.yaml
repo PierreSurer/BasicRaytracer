@@ -13,7 +13,7 @@
 #  it should be clear that the #-character can be used to insert comments.
 
 SuperSampling:
-  factor: 4
+  factor: 16
 
 RenderMode: 'color'
 
@@ -37,8 +37,10 @@ Objects:
   children:
   - type: mesh
     file: "vion-lowres/vion.obj"
+    angularVelocity: [0, 0, 5]
   - type: mesh
     file: "vion-lowres/propeller.obj"
+    angularVelocity: [0, 0, 20]
 
   # background sphere
 - type: sphere

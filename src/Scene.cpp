@@ -75,13 +75,17 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 
     auto material = node.FindValue("material") ? parseMaterial(node["material"]) : DEFAULT_MATERIAL;
 
+    glm::dvec3 velocity(0.0), angularVelocity(0.0);
     glm::dmat4 transform(1.0);
     {
         glm::dvec3 loc(0.0), rot(0.0), sca(1.0);
         if (node.FindValue("position")) node["position"] >> loc;
         if (node.FindValue("rotation")) node["rotation"] >> rot;
         if (node.FindValue("scale")) node["scale"] >> sca;
+        if (node.FindValue("velocity")) node["velocity"] >> velocity;
+        if (node.FindValue("angularVelocity")) node["angularVelocity"] >> angularVelocity;
         rot = radians(rot);
+        angularVelocity = radians(angularVelocity);
         transform = glm::translate(glm::dmat4(1.0), loc)
             * glm::eulerAngleYXZ(rot.y, rot.x, rot.z)
             * glm::scale(glm::dmat4(1.0), sca);
@@ -136,10 +140,10 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 
     returnObject->material = std::move(material);
 
-    if (transform != glm::dmat4(1.0)) {
+    if (transform != glm::dmat4(1.0) || velocity != glm::dvec3(0.0) || angularVelocity != glm::dvec3(0.0)) {
         returnObject = std::make_unique<TransformNode>(std::move(returnObject), transform);
-        // ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 10.0);
-        ((TransformNode*)returnObject.get())->setAngularVelocity({ 0.0, 0.0, glm::radians(10.0) });
+        ((TransformNode*)returnObject.get())->setLinearVelocity(velocity);
+        ((TransformNode*)returnObject.get())->setAngularVelocity(angularVelocity);
     }
 
     return returnObject;
