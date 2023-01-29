@@ -209,6 +209,62 @@ Color Raytracer::traceNormals(const Scene &scene, const Ray &ray)
     return Color(1.0 + N) * 0.5;
 }
 
+Color Raytracer::traceUVs(const Scene &scene, const Ray &ray)
+{
+    // Find hit object and distance
+    auto min_hit = Hit::NO_HIT();
+    for (const auto &obj : scene.objects) {
+        auto hit = obj->intersect(ray);
+        if (hit->t < min_hit->t) {
+            min_hit = std::move(hit);
+        }
+    }
+
+    // No hit? Return background color.
+    if (min_hit->no_hit) return Color(0.0, 0.0, 0.0);
+
+    return Color(min_hit->params().tex_coords.x, 0.0, min_hit->params().tex_coords.y);
+}
+
+Color Raytracer::traceGooch(const Scene &scene, const Ray &ray)
+{
+    // Find hit object and distance
+    auto min_hit = Hit::NO_HIT();
+    for (const auto &obj : scene.objects) {
+        auto hit = obj->intersect(ray);
+        if (hit->t < min_hit->t) {
+            min_hit = std::move(hit);
+        }
+    }
+
+    // No hit? Return background color.
+    if (min_hit->no_hit) return Color(0.0, 0.0, 0.0);
+    Color result = Color(0.0);
+
+    Color kBlue = Color(0.0, 0.0, 1.0) * scene.gooch.b;
+    Color kYellow = Color(1.0, 1.0, 0.0) * scene.gooch.y;
+
+    auto mat = min_hit->params().obj->material;
+    for(auto const& light : scene.lights) {
+        Color kD = light->color * mat->color * mat->kd;
+        
+        Color kCool = kBlue + scene.gooch.alpha * kD;
+        Color kWarm = kYellow + scene.gooch.beta * kD;
+        
+        //diffuse
+        dvec3 lightVector = normalize(light->position - ray.at(min_hit->t)); 
+        double KL = dot(min_hit->params().normal, -lightVector);
+        result += ((1 + KL) / 2.0) * kCool + (1 - (1 + KL) / 2.0) * kWarm ;
+
+        //specular
+        dvec3 R = reflect(-lightVector, min_hit->params().normal);
+        double NdotH = clamp(dot(-ray.D, R), 0.0, 1.0);
+        result += light->color * pow(NdotH, mat->n) * mat->ks;
+    }
+
+    return result;
+}
+
 void Raytracer::render(const Scene& scene, Image& img) {
     switch (scene.params.mode)
     {
@@ -218,6 +274,10 @@ void Raytracer::render(const Scene& scene, Image& img) {
         return render<RenderMode::DEPTH>(scene, img);
     case RenderMode::NORMAL:
         return render<RenderMode::NORMAL>(scene, img);
+    case RenderMode::UV:
+        return render<RenderMode::UV>(scene, img);
+    case RenderMode::GOOCH:
+        return render<RenderMode::GOOCH>(scene, img);
     default:
         throw std::runtime_error("No render type matched");
     } 
@@ -267,6 +327,10 @@ void Raytracer::render(const Scene& scene, Image& img)
                 col = traceDepth(scene, ray);
             else if constexpr (Mode == RenderMode::NORMAL)
                 col = traceNormals(scene, ray);
+            else if constexpr (Mode == RenderMode::UV)
+                col = traceUVs(scene, ray);
+            else if constexpr (Mode == RenderMode::GOOCH)
+                col = traceGooch(scene, ray);
             else
                 throw std::runtime_error("No render type matched");
 

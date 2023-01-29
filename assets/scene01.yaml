@@ -12,6 +12,8 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
+RenderMode: "gooch"
+
 Camera:
   eye: [0, 0, 800]
   center: [0, 0, 0]
@@ -19,10 +21,10 @@ Camera:
   fov: 70
 
 SuperSampling:
-  factor: 4
+  factor: 1
 
 Lights:
-- position: [0,0,1500]
+- position: [400,0,400]
   color: [1.0,1.0,1.0]
 
 Objects:
@@ -58,7 +60,7 @@ Objects:
     ior: 1.0
 - type: sphere
   position: [-60,20,400]
-  rotation: [0, 0, 0]
+  rotation: [60, 270, 70]
   radius: 50
   material: # yellow
     texture: earth.png

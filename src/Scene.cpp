@@ -191,7 +191,19 @@ TraceParameters Scene::parseParameters(const YAML::Node& node) const
         if(node["RenderMode"] == "zbuffer") res.mode = RenderMode::DEPTH;
         if(node["RenderMode"] == "normal") res.mode = RenderMode::NORMAL;
         if(node["RenderMode"] == "phong") res.mode = RenderMode::PHONG;
+        if(node["RenderMode"] == "uv") res.mode = RenderMode::UV;
+        if(node["RenderMode"] == "gooch") res.mode = RenderMode::GOOCH;
     }
+
+    return res;
+}
+
+GoochParameters Scene::parseGooch(const YAML::Node& node) const {
+    GoochParameters res;
+    if(node.FindValue("b")) node["b"] >> res.b;
+    if(node.FindValue("y")) node["y"] >> res.y;
+    if(node.FindValue("alpha")) node["alpha"] >> res.alpha;
+    if(node.FindValue("beta")) node["beta"] >> res.beta;
 
     return res;
 }
@@ -236,6 +248,10 @@ bool Scene::readScene(const std::string& inputFilename)
 
             // Rad scene parameters
             params = parseParameters(doc);
+
+            // Gooch parameters
+            if (doc.FindValue("GoochParameters"))
+                gooch = parseGooch(doc["GoochParameters"]);
 
             // Read scene camera
             const YAML::Node& cam = doc["Camera"];

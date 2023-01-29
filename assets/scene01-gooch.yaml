@@ -12,87 +12,33 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-SuperSampling:
-  factor: 16
-
-RenderMode: 'uv'
-
+RenderMode: "gooch"
+GoochParameters:
+  b: 0.55
+  y: 0.3
+  alpha: 0.25
+  beta: 0.5
 Camera:
-  eye: [0, 0, 500]
-  center: [0, 0, 0]
+  eye: [200,200,1000]
+  center: [200,200, 0]
   up: [0, 1, 0]
-  fov: 70
 
 Lights:
-- position: [1000,0,1000]
+- position: [-1000,600,400]
   color: [1.0,1.0,1.0]
 
 Objects:
-
-
-- type: group
-  rotation: [0, 0, 0]
-  position: [0, 0, 300]
-  scale: [20, 20, 20]
-  children:
-  - type: mesh
-    file: "vion-lowres/vion.obj"
-    angularVelocity: [0, 0, 5]
-  - type: mesh
-    file: "vion-lowres/propeller.obj"
-    angularVelocity: [0, 0, 20]
-
-  # background sphere
 - type: sphere
-  position: [0,0,-1200]
-  radius: 500
-  scale: [2, 2, 2]
-  material: # grey
-    color: [0.4,0.4,0.4]
-    ka: 0.2
-    kd: 0.8
-    ks: 0
-    n: 1
-    ior: 1.0
-
-# - type: cylinder
-#   position: [-110,120,100]
-#   rotation: [50, 40, 60]
-#   height: 20
-#   radius: 40
-#   material: # yellow
-#     color: [1.0,1.0,0.0]
-#     ka: 0.2
-#     kd: 0.7
-#     ks: 0.5
-#     n: 64
-#     #ior: 1.5
-
-# - type: triangle
-#   p1: [0,0,50]
-#   p2: [200,0,50]
-#   p3: [0,200,50]
-#   material: # blue
-#     color: [0.0,0.0,1.0]
-#     ka: 0.2
-#     kd: 0.7
-#     ks: 0.5
-#     n: 64
-
-- type: box
-  position: [0,0,300]
-  rotation: [0,30,0]
-  scale: [10, 10, 10]
-  material: # red
-    color: [1.0,0.0,0.0]
+  position: [90,320,100]
+  radius: 50
+  material: # blue
+    color: [0.0,0.0,1.0]
     ka: 0.2
     kd: 0.7
     ks: 0.5
     n: 64
-    # ior: 3.5
-
 - type: sphere
-  position: [100,-100,150]
+  position: [210,270,300]
   radius: 50
   material: # green
     color: [0.0,1.0,0.0]
@@ -100,7 +46,24 @@ Objects:
     kd: 0.3
     ks: 0.5
     n: 8
-
+- type: sphere
+  position: [290,170,150]
+  radius: 50
+  material: # red
+    color: [1.0,0.0,0.0]
+    ka: 0.2
+    kd: 0.7
+    ks: 0.8
+    n: 32
+- type: sphere
+  position: [140,220,400]
+  radius: 50
+  material: # yellow
+    color: [1.0,0.8,0.0]
+    ka: 0.2
+    kd: 0.8
+    ks: 0.0
+    n: 1
 - type: sphere
   position: [110,130,200]
   radius: 50
@@ -110,3 +73,12 @@ Objects:
     kd: 0.8
     ks: 0.5
     n: 32
+- type: sphere
+  position: [200,200,-1000]
+  radius: 1000
+  material: # grey
+    color: [0.4,0.4,0.4]
+    ka: 0.2
+    kd: 0.8
+    ks: 0
+    n: 1

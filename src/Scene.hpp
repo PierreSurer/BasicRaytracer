@@ -11,7 +11,7 @@
 #include <filesystem>
 #include <glm.hpp>
 
-enum class RenderMode {PHONG, NORMAL, DEPTH};
+enum class RenderMode {PHONG, NORMAL, DEPTH, UV, GOOCH};
 
 struct TraceParameters {
     bool shadows = true;
@@ -19,6 +19,13 @@ struct TraceParameters {
     int maxBounces = 10;
     int superSampling = 1;
     RenderMode mode = RenderMode::PHONG;
+};
+
+struct GoochParameters {
+    double b = 0.4;
+    double y = 0.4;
+    double alpha = 0.2;
+    double beta = 0.6;
 };
 
 enum class Sky {NONE, DAY, NIGHT, DIRECTION};
@@ -42,6 +49,7 @@ public:
 
     Camera camera;
     TraceParameters params;
+    GoochParameters gooch;
 
 private:
     std::filesystem::path assetsDir;
@@ -53,4 +61,5 @@ private:
     std::unique_ptr<Light> parseLight(const YAML::Node& node) const;
     Camera parseCamera(const YAML::Node& node) const;
     TraceParameters parseParameters(const YAML::Node& node) const;
+    GoochParameters parseGooch(const YAML::Node& node) const;
 };

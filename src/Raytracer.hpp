@@ -22,6 +22,8 @@ private:
     Color traceColor(const Scene &scene, const Ray &ray, TraceState state = TraceState{});
     Color traceDepth(const Scene &scene, const Ray &ray);
     Color traceNormals(const Scene &scene, const Ray &ray);
+    Color traceUVs(const Scene &scene, const Ray &ray);
+    Color traceGooch(const Scene &scene, const Ray &ray);
 
     template<RenderMode Mode>
     void render(const Scene &scene, Image &img);
