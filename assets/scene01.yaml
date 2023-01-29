@@ -15,10 +15,9 @@
 RenderMode: "gooch"
 
 Camera:
-  eye: [0, 0, 800]
+  eye: [0, 0, 1000]
   center: [0, 0, 0]
   up: [0, 1, 0]
-  fov: 70
 
 SuperSampling:
   factor: 1
