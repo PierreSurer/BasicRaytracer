@@ -130,11 +130,15 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         }
         returnObject = std::make_unique<Group>(std::move(objs));
     }
+    else {
+        return nullptr;
+    }
 
-    if (returnObject) {
-        returnObject->material = std::move(material);
+    returnObject->material = std::move(material);
+
+    if (transform != glm::dmat4(1.0)) {
         returnObject = std::make_unique<TransformNode>(std::move(returnObject), transform);
-        ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 0.4);
+        ((TransformNode*)returnObject.get())->velocity = glm::dvec3(0.0, 0.0, 10.0);
     }
 
     return returnObject;

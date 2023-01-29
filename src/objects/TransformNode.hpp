@@ -17,9 +17,10 @@ public:
 private:
     std::unique_ptr<Object> obj;
 
-    glm::dmat4 model = glm::dmat4(1.0);
-    glm::dmat4 invModel = glm::dmat4(1.0);
-    glm::dmat3 normModel = glm::dmat4(1.0); // transpose inverse (normal matrix)
+    glm::dmat3 model = glm::dmat4(1.0);
+    glm::dmat3 model_inv = glm::dmat4(1.0);
+    glm::dmat3 model_inv_transp = glm::dmat4(1.0); // transpose inverse (normal matrix)
+    glm::dvec3 position;
 
     Ray computeLocalRay(const Ray& globalRay) const;
 
