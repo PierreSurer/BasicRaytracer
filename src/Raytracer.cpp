@@ -29,21 +29,26 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 
     // No hit? Return sky color.
     if (hit->no_hit) {
+        Color returnCol;
         switch (scene.sky)
         {
             case Sky::DIRECTION:
-                return (ray.D + 1.0) * 0.5;
+                returnCol = (ray.D + 1.0) * 0.5;
+                break;
             case Sky::DAY:
-                return (ray.D + 1.0) * 0.5;
+                returnCol = Color(50.0 / 255.0, 173.0 / 255.0, 241.0 / 255.0);
+                break;
             case Sky::NIGHT:
-            {
                 // float y = tan(ray.D.y * glm::pi<float>());
-                return clamp(Color((double)noise.simplex2(ray.D * 15.0)) - 0.9, 0.0, 1.0) * 8.0 + clamp(Color((double)noise.simplex2(180.0 + ray.D * 300.0)) - 0.95, 0.0, 1.0) * 15.0;
-            }    
+                returnCol = clamp(Color((double)noise.simplex2(ray.D * 15.0)) - 0.9, 0.0, 1.0) * 8.0 + clamp(Color((double)noise.simplex2(180.0 + ray.D * 300.0)) - 0.95, 0.0, 1.0) * 15.0;
+                break;   
             case Sky::NONE:
             default:
-                return Color(0.0);
+                returnCol = Color(0.0);
         }
+        for(int i = 0; i < scene.clouds.size(); i++)
+            returnCol *= scene.clouds[i]->traverse(ray);
+        return returnCol;
     }
 
 
@@ -256,7 +261,7 @@ void Raytracer::render(const Scene& scene, Image& img)
             Ray ray(scene.camera.getPosition(), dir, apertureTime * (double)rand() / RAND_MAX);
 
             // this branching is compile-time thanks to the template and constexpr.
-            if constexpr (Mode == RenderMode::PHONG)
+            if constexpr (Mode == RenderMode::PHONG) 
                 col = traceColor(scene, ray);
             else if constexpr (Mode == RenderMode::DEPTH)
                 col = traceDepth(scene, ray);

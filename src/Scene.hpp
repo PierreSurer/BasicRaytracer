@@ -2,6 +2,7 @@
 
 #include "objects/Light.hpp"
 #include "objects/Object.hpp"
+#include "objects/Cloud.hpp"
 #include "Image.hpp"
 #include "Camera.hpp"
 #include "yaml/yaml.h"
@@ -36,6 +37,7 @@ public:
 
     std::vector<std::unique_ptr<Object>> objects; //TODO private?
     std::vector<std::unique_ptr<Light>> lights;
+    std::vector<std::unique_ptr<Cloud>> clouds;
     Sky sky;
 
     Camera camera;
@@ -47,6 +49,7 @@ private:
     // Couple of private functions for parsing YAML nodes
     std::unique_ptr<Material> parseMaterial(const YAML::Node& node) const;
     std::unique_ptr<Object> parseObject(const YAML::Node& node) const;
+    std::unique_ptr<Cloud> parseCloud(const YAML::Node& node) const;
     std::unique_ptr<Light> parseLight(const YAML::Node& node) const;
     Camera parseCamera(const YAML::Node& node) const;
     TraceParameters parseParameters(const YAML::Node& node) const;

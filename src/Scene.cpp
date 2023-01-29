@@ -40,7 +40,7 @@ static glm::dvec3 parseVector(const YAML::Node& node)
 }
 
 Scene::Scene()
- : sky(Sky::NONE)
+ : sky(Sky::DAY)
 {
 }
 
@@ -149,6 +149,19 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
     return returnObject;
 }
 
+std::unique_ptr<Cloud> Scene::parseCloud(const YAML::Node& node) const {
+    std::unique_ptr<Cloud> returnObject;
+    glm::dvec3 loc(0.0), sca(1.0);
+    int par;
+    node["position"] >> loc;
+    node["scale"] >> sca;
+    node["particles"] >> par;
+
+    returnObject = std::make_unique<Cloud>(loc, sca, par);
+
+    return returnObject;
+}
+
 std::unique_ptr<Light> Scene::parseLight(const YAML::Node& node) const
 {
     glm::dvec3 position;
@@ -229,24 +242,43 @@ bool Scene::readScene(const std::string& inputFilename)
             camera = parseCamera(cam);
             
             // Read and parse the scene objects
-            const YAML::Node& sceneObjects = doc["Objects"];
-            if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
-                std::cerr << "Error: expected a sequence of objects." << std::endl;
-                return false;
+            if (doc.FindValue("Objects")) {
+                const YAML::Node& sceneObjects = doc["Objects"];
+                if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
+                    std::cerr << "Error: expected a sequence of objects." << std::endl;
+                    return false;
+                }
+                for(auto const& o : sceneObjects) {
+                    std::unique_ptr<Object> obj = parseObject(o);
+                    // Only add object if it is recognized
+                    if (obj) {
+                        objects.push_back(std::move(obj));
+                    } else {
+                        std::cerr << "Warning: found object of unknown type, ignored." << std::endl;
+                    }
+                }
             }
-            for(auto const& o : sceneObjects) {
-                std::unique_ptr<Object> obj = parseObject(o);
-                // Only add object if it is recognized
-                if (obj) {
-                    objects.push_back(std::move(obj));
-                } else {
-                    std::cerr << "Warning: found object of unknown type, ignored." << std::endl;
+            
+            if (doc.FindValue("Clouds")) {
+                const YAML::Node& sceneClouds = doc["Clouds"];
+                if (sceneClouds.GetType() != YAML::CT_SEQUENCE) {
+                    std::cerr << "Error: expected a sequence of clouds." << std::endl;
+                    return false;
+                }
+                for(auto const& c : sceneClouds) {
+                    std::unique_ptr<Cloud> cld = parseCloud(c);
+                    // Only add cloud if it is recognized
+                    if (cld) {
+                        clouds.push_back(std::move(cld));
+                    } else {
+                        std::cerr << "Warning: found cloud of unknown type, ignored." << std::endl;
+                    }
                 }
             }
 
             // Read and parse light definitions
             const YAML::Node& sceneLights = doc["Lights"];
-            if (sceneObjects.GetType() != YAML::CT_SEQUENCE) {
+            if (sceneLights.GetType() != YAML::CT_SEQUENCE) {
                 std::cerr << "Error: expected a sequence of lights." << std::endl;
                 return false;
             }
