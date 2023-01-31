@@ -21,7 +21,6 @@ Camera:
   eye: [0, 0, 500]
   center: [0, 0, 0]
   up: [0, 1, 0]
-  fov: 70
 
 Lights:
 - position: [1000,0,1000]
@@ -29,5 +28,4 @@ Lights:
 
 Clouds:
 - position: [0, 0, 0]
-  scale: [600, 400, 600]
-  particles : 100000
+  scale: [40, 40, 40]

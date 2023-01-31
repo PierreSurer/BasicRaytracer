@@ -3,23 +3,16 @@
 #include "Raycast.hpp"
 #include <vector>
 
-typedef glm::dvec3 Color;
-
 class Cloud {
 public:
-    Cloud(glm::dvec3 position, glm::dvec3 scale, int particlesNum);
-    Color traverse(Ray const& ray);
+    Cloud(glm::dvec3 position, glm::dvec3 scale);
+    glm::dvec4 traverse(Ray const& ray);
 
 private:
-    struct Particle {
-        glm::dvec3 pos;
-        double size;
-    };
-    double calculateOpacity(Ray const& ray, Particle const& p);
+    double signedDistance(glm::dvec3 localPos);
+    double densityFunction(double sdf);
 
     glm::dvec3 position;
     glm::dvec3 scale;
-
-    std::vector<Particle> particles;
 };
 

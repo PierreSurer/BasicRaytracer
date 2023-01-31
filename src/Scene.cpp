@@ -40,7 +40,7 @@ static glm::dvec3 parseVector(const YAML::Node& node)
 }
 
 Scene::Scene()
- : sky(Sky::NONE)
+ : sky(Sky::DAY)
 {
 }
 
@@ -155,9 +155,8 @@ std::unique_ptr<Cloud> Scene::parseCloud(const YAML::Node& node) const {
     int par;
     node["position"] >> loc;
     node["scale"] >> sca;
-    node["particles"] >> par;
 
-    returnObject = std::make_unique<Cloud>(loc, sca, par);
+    returnObject = std::make_unique<Cloud>(loc, sca);
 
     return returnObject;
 }

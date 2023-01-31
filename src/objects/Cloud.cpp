@@ -3,24 +3,21 @@
 #include <random>
 #include <glm/gtx/norm.hpp>
 
-Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale, int particlesNum)
- : position(position), scale(scale) {
-    // Initialiser la génération aléatoire
-    std::default_random_engine generator;
-    std::normal_distribution<double> posDistribution(0.0, 0.2);
-    std::uniform_real_distribution<double> sizeDistribution(0.0, 2.0);
+const int RAY_MAX_STEPS = 1000;
+const int STEP_SIZE = 1;
+Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
+ : position(position), scale(scale) 
+{
 
-    for (int i = 0; i < particlesNum; i++) {
-        Particle p;
-        p.pos = glm::dvec3(posDistribution(generator) * scale.x * 0.5, posDistribution(generator) * scale.y * 0.5, posDistribution(generator) * scale.z * 0.5);
-        p.size = sizeDistribution(generator);
-        particles.push_back(p);
-    }
+}
+
+double Cloud::densityFunction(double sdf) {
+    return glm::max(-sdf, 0.0);
 }
 
 
-Color Cloud::traverse(Ray const& ray) {
-    Color particleColor = Color(1.0); // couleur de la particule pour ce pixel
+glm::dvec4 Cloud::traverse(Ray const& ray) {
+    glm::dvec4 intScattTrans = glm::dvec4(0.0, 0.0, 0.0, 1.0);
 
     auto first = position - scale * 0.5;
     auto second = position + scale * 0.5;
@@ -32,39 +29,60 @@ Color Cloud::traverse(Ray const& ray) {
     glm::dvec3 t2 = max(tMin, tMax);
     double tNear = compMax(t1);
     double tFar = compMin(t2);
-    if(tNear > tFar || tFar < 0.0) return particleColor;
+    // No intersection
+    if(tNear > tFar || tFar < 0.0) return intScattTrans;
+
+    // Scattering in RGB, transmission in A
 
 
-    for (Particle p : particles) {
-        particleColor *= 1.0 + 0.005 * calculateOpacity(ray, p);
-    }
+    // Current distance along ray
+    float t = 0;
 
-    if(particleColor != Color(1.0)) {
-        int smplDist = 10;
-        int smplCount = 1 + (int)(tFar - tNear) / smplDist;
-        for(int i = 0; i < smplCount; i++) {
-            auto pos = ray.at(tNear + smplDist * i);
-            Ray shadowray(pos, glm::dvec3(0.0, 1.0, 0.0), ray.time);
-            for (Particle p : particles)
-                particleColor *= 1.0 - 0.001 * calculateOpacity(shadowray, p);
-            particleColor *= 1.005;
+    for (int i = 0; i < RAY_MAX_STEPS && t < tFar; i++)
+
+    {
+
+        // Current ray position
+        glm::dvec3 rayPos = ray.at(t) - position;
+
+        // Evaluate our signed distance field at the current ray position
+        double sdf = signedDistance(rayPos);
+
+        // Only evaluate the cloud color if we're inside the volume
+        if (sdf < 0)
+        {
+            double extinction = densityFunction(sdf);
+            double transmittance = exp(extinction * STEP_SIZE);   
+
+            // Get the luminance for the current ray position
+            double luminance = 0.2126 * rayPos.r + 0.7152 * rayPos.g + 0.0722 * rayPos.b;
+
+            // Integrate scattering
+            double integScatt = luminance - luminance * transmittance;
+            intScattTrans.x += integScatt * intScattTrans.a;
+            intScattTrans.y += integScatt * intScattTrans.a;
+            intScattTrans.z += integScatt * intScattTrans.a;
+            intScattTrans.a *= transmittance;
+
+            // Opaque check
+            if (intScattTrans.a < 0.003)
+            {
+                intScattTrans.a = 0.0;
+                break;
+            }
         }
-    }
-    
 
-    return particleColor;
+        // March forward; step size depends on if we're inside the volume or not
+        t += sdf < 0 ? STEP_SIZE : glm::max(sdf, (double)STEP_SIZE);
+
+    }
+
+    return glm::dvec4(intScattTrans.x, intScattTrans.y, intScattTrans.z, 1 - intScattTrans.a);
+
 }
 
-double Cloud::calculateOpacity(Ray const& ray, Particle const& p) {
-    glm::dvec3 OC = p.pos + position - ray.O;
-    double t = dot(OC, ray.D);
-    if(t < 0.0) return 0.0;
-    
-    double h_2 = glm::length2(OC) - t * t;
-    double r2 = p.size * p.size;
-    if (h_2 > r2) {
-        return 0.0;
-    }
-
-    return 2.0 * sqrt(r2 - h_2);
+//https://iquilezles.org/articles/distfunctions/
+double Cloud::signedDistance(glm::dvec3 pos) {
+    glm::dvec3 q = abs(pos) - scale * 0.5;
+    return length(glm::max(q, 0.0)) + glm::min(glm::max(q.x, glm::max(q.y, q.z)), 0.0);
 }
