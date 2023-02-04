@@ -22,7 +22,7 @@
 #include <glm/gtx/euler_angles.hpp>
 
 // Functions to ease reading from YAML input
-static void operator >> (const YAML::Node& node, glm::dvec3& v)
+static void operator>> (const YAML::Node& node, glm::dvec3& v)
 {
     assert(node.size() == 3);
     node[0] >> v.x;
@@ -152,7 +152,6 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
 std::unique_ptr<Cloud> Scene::parseCloud(const YAML::Node& node) const {
     std::unique_ptr<Cloud> returnObject;
     glm::dvec3 loc(0.0), sca(1.0);
-    int par;
     node["position"] >> loc;
     node["scale"] >> sca;
 
@@ -216,7 +215,6 @@ Camera Scene::parseCamera(const YAML::Node& node) const
     up = parseVector(node["up"]);
     target = parseVector(node["center"]);
 
-    camera.setPosition(eye);
     camera.lookAt(eye, target, normalize(up));
     if (node.FindValue("fov")) node["fov"] >> camera.fov;
     

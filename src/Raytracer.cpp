@@ -46,7 +46,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             default:
                 returnCol = Color(0.0);
         }
-        for(int i = 0; i < scene.clouds.size(); i++) {
+        for(size_t i = 0; i < scene.clouds.size(); i++) {
             glm::dvec4 cloud = scene.clouds[i]->traverse(ray);
             returnCol = returnCol * cloud.a + (1.0-cloud.a) * (Color)cloud;
         }
@@ -172,7 +172,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 
 Color Raytracer::traceDepth(const Scene &scene, const Ray &ray)
 {
-    dvec3 axis =  scene.camera.getRotationMat() * glm::dvec4(0.0, 0.0, 1.0, 0.0);
+    dvec3 axis = normalize(scene.camera.target - scene.camera.eye);
     Ray newRay(ray.at(scene.camera.near), ray.D, ray.time);
 
     // Find hit object and distance
@@ -295,9 +295,10 @@ void Raytracer::render(const Scene& scene, Image& img)
     int64_t h = img.height();
 
     // build a set of camera axes (right-hand rule, look in z-negative direction)
-    glm::dvec3 cam_x =  glm::dvec4(1.0, 0.0, 0.0, 0.0) * scene.camera.getRotationMat();
-    glm::dvec3 cam_y =  glm::dvec4(0.0, 1.0, 0.0, 0.0) * scene.camera.getRotationMat();
-    glm::dvec3 cam_z =  glm::dvec4(0.0, 0.0, 1.0, 0.0) * scene.camera.getRotationMat(); // -view_direction
+    auto const& cam = scene.camera;
+    dvec3 cam_z = normalize(cam.eye - cam.target); // -view_direction
+    dvec3 cam_x = cross(cam.up, cam_z);
+    dvec3 cam_y = cross(cam_z, cam_x);
 
     // distance of the focal plane
     double dz = (h - 1) / (2.0 * tan(radians(scene.camera.fov) / 2.0));
@@ -321,7 +322,7 @@ void Raytracer::render(const Scene& scene, Image& img)
             double pyy = dy + (1.0 + 2.0 * y) * offset;
             glm::dvec3 dir = normalize(-cam_z * dz + cam_x * pxx + cam_y * pyy);
             Color col(0.0);
-            Ray ray(scene.camera.getPosition(), dir, apertureTime * (double)rand() / RAND_MAX);
+            Ray ray(cam.eye, dir, apertureTime * (double)rand() / RAND_MAX);
 
             // this branching is compile-time thanks to the template and constexpr.
             if constexpr (Mode == RenderMode::PHONG) 
