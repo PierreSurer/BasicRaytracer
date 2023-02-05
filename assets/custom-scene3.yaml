@@ -15,7 +15,7 @@
 SuperSampling:
   factor: 1
 
-RenderMode: 'color'
+RenderMode: 'uv'
 
 Camera:
   eye: [0, 0, 500]
@@ -26,6 +26,20 @@ Lights:
 - position: [1000,0,1000]
   color: [1.0,1.0,1.0]
 
-Clouds:
-- position: [0, 0, 0]
-  scale: [40, 40, 40]
+# Clouds:
+# - position: [0, 0, 0]
+#   scale: [40, 40, 40]
+
+Objects:
+
+- type: cylinder
+  rotation: [0, -90, -45]
+  position: [0, 0, 0]
+  height: 30
+  radius: 20
+  material: # cyan
+    color: [0.0,1.0,1.0]
+    ka: 0.2
+    kd: 0.3
+    ks: 0.7
+    n: 8

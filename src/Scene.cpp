@@ -104,7 +104,7 @@ std::unique_ptr<Object> Scene::parseObject(const YAML::Node& node) const
         double height(1.0), radius(1.0);
         if (node.FindValue("height")) node["height"] >> height;
         if (node.FindValue("radius")) node["radius"] >> radius;
-        transform *= glm::scale(glm::dmat4(1.0), glm::dvec3(height, radius, radius));
+        transform *= glm::scale(glm::dmat4(1.0), glm::dvec3(radius, height, radius));
         returnObject = std::make_unique<Cylinder>();
     }
     else if (objectType == "triangle") {
