@@ -28,4 +28,4 @@ Lights:
 
 Clouds:
 - position: [0, 0, 0]
-  scale: [40, 40, 40]
+  scale: [100, 100, 100]
