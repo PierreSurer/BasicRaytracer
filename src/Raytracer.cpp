@@ -68,8 +68,8 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     Color reflectionColor(0.0), refractionColor(0.0);
     Color finalColor(0.0);
 
-    Color baseColor = mat->texture ?
-        mat->texture->sample(hitProp.tex_coords) :
+    Color baseColor = mat->diffuseMap ?
+        mat->color * mat->diffuseMap->sample(hitProp.tex_coords) :
         mat->color;
 
     for (auto const& light : scene.lights) {
@@ -108,6 +108,10 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             // specularColor *= light->specularPower / length2(lightVector);
         }
     }
+    
+    if (mat->specularMap) {
+        specularColor *= mat->specularMap->sample(hitProp.tex_coords);
+    }
 
     // reflection
     if (state.bounces < params.maxBounces && mat->ks * state.reflectionFactor > params.reflectionTheshold) {
@@ -135,7 +139,6 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
                 refractionColor = traceColor(scene, refractionRay, nextState);
         }
     }
-
 
     // color blending
     finalColor = 

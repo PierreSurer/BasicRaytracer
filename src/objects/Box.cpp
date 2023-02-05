@@ -11,6 +11,10 @@ using namespace glm;
 Box::Box()
 { }
 
+static const std::vector<ivec2> UV_LOOKUP{
+    ivec2{ 0, 0 },
+};
+
 std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
 {
     dvec3 tMin = (-dvec3(1.0) - ray.O) / ray.D;
@@ -21,10 +25,20 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
     double tFar = compMin(t2);
     if(tNear > tFar || tFar < 0.0) return Hit::NO_HIT();
 
-    dvec3 normal = sign(ray.D) * dvec3(equal(t1, dvec3(tNear))) * (tNear < 0 ? 1.0 : -1.0);
+    dvec3 normal = tNear >= 0 ? -sign(ray.D) : sign(ray.D); // normal faces away from ray direction
+    normal *= dvec3(equal(t1, dvec3(tNear))); // bit mask to keep first hit direction
 
-    // TODO uv
     dvec2 uv(0.0);
+    auto hit = ray.at(tNear) * 0.5 + 0.5;
+    if (normal.x != 0.0) {
+        uv = { hit.y, hit.z };
+    }
+    else if (normal.y != 0.0) {
+        uv = { hit.x, hit.z };
+    }
+    else {
+        uv = { hit.x, hit.y };
+    }
 
     return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
 }

@@ -142,7 +142,21 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
       std::filesystem::path tex_path;
       iss >> tex_path;
       tex_path = path.parent_path() / tex_path;
-      mat->texture = std::make_shared<Image>(tex_path.string());
+      mat->diffuseMap = std::make_shared<Image>(tex_path.string());
+      mat->kd = 1.0;
+    }
+    else if (c == "map_Ks") { // specular texture
+      std::filesystem::path tex_path;
+      iss >> tex_path;
+      tex_path = path.parent_path() / tex_path;
+      mat->specularMap = std::make_shared<Image>(tex_path.string());
+      mat->kd = 1.0;
+    }
+    else if (c == "norm") { // normal / bump map texture
+      std::filesystem::path tex_path;
+      iss >> tex_path;
+      tex_path = path.parent_path() / tex_path;
+      mat->normalMap = std::make_shared<Image>(tex_path.string());
       mat->kd = 1.0;
     }
   }

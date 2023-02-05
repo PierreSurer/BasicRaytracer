@@ -59,10 +59,20 @@ std::unique_ptr<Material> Scene::parseMaterial(const YAML::Node& node) const
         node["ior"] >> m->ior;
         m->ior = std::max(m->ior, 1.0);
     }
-    if (node.FindValue("texture")) {
+    if (node.FindValue("diffuseMap")) {
         std::string filename;
-        node["texture"] >> filename;
-        m->texture = std::make_shared<Image>((assetsDir / filename).string());
+        node["diffuseMap"] >> filename;
+        m->diffuseMap = std::make_shared<Image>((assetsDir / filename).string());
+    }
+    if (node.FindValue("specularMap")) {
+        std::string filename;
+        node["specularMap"] >> filename;
+        m->specularMap = std::make_shared<Image>((assetsDir / filename).string());
+    }
+    if (node.FindValue("normalMap")) {
+        std::string filename;
+        node["normalMap"] >> filename;
+        m->normalMap = std::make_shared<Image>((assetsDir / filename).string());
     }
     return m;
 }
