@@ -36,7 +36,12 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
                 returnCol = (ray.D + 1.0) * 0.5;
                 break;
             case Sky::DAY:
-                returnCol = Color(50.0 / 255.0, 173.0 / 255.0, 241.0 / 255.0);
+                returnCol.x = sin(scene.camera.fov);
+                returnCol = mix(
+                    Color(57.0, 192.0, 241.0),
+                    Color(0.0, 126.0, 234.0),
+                    (ray.D.y + returnCol.x) / (2 * returnCol.x)
+                ) / 255.0;
                 break;
             case Sky::NIGHT:
                 // float y = tan(ray.D.y * glm::pi<float>());
