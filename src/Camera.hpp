@@ -8,30 +8,13 @@ class Camera
 {
 public:
     Camera();
-    ~Camera();
-    glm::dmat4 getProjection() const { return projection; }
-
-
-    void setPosition(glm::dvec3 const& pos);
-    void setRotation(glm::dvec3 const& rot);
-    void lookAt(glm::dvec3 const& eye, glm::dvec3 const& target, glm::dvec3 const& up);
-
-    glm::dvec3 getPosition() const {return position;};
-    glm::dvec3 getRotation() const {return rotation;};
-
-    glm::dmat4 getRotationMat() const {return rotMat;};
+    void lookAt(glm::dvec3 eye, glm::dvec3 target, glm::dvec3 up = glm::dvec3(0.0, 1.0, 0.0));
 
     double fov;
     double near;
     double far;
     
-private:
-
-    glm::dvec3 rotation;
-    glm::dvec3 position;
-
-    glm::dmat4 projection;
-    glm::dmat4 rotMat;
-
-    
+    glm::dvec3 up;
+    glm::dvec3 eye;
+    glm::dvec3 target;
 };

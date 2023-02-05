@@ -13,7 +13,7 @@
 #  it should be clear that the #-character can be used to insert comments.
 
 SuperSampling:
-  factor: 32
+  factor: 8
 
 RenderMode: 'phong'
 
@@ -24,36 +24,50 @@ Camera:
   fov: 70
 
 Lights:
-- position: [1000,0,1000]
+- position: [500,0,500]
   color: [1.0,1.0,1.0]
 
 Objects:
 
 
-- type: group
-  rotation: [0, 0, 0]
-  position: [0, 0, 300]
-  scale: [20, 20, 20]
-  children:
-  - type: mesh
-    file: "vion-lowres/vion.obj"
-    angularVelocity: [0, 0, 5]
-  - type: mesh
-    file: "vion-lowres/propeller.obj"
-    angularVelocity: [0, 0, 20]
+# - type: group
+#   rotation: [0, 0, 0]
+#   position: [0, 0, 300]
+#   scale: [20, 20, 20]
+#   children:
+#   - type: mesh
+#     file: "vion-lowres/vion.obj"
+#     angularVelocity: [0, 0, 5]
+#   - type: mesh
+#     file: "vion-lowres/propeller.obj"
+#     angularVelocity: [0, 0, 20]
 
-  # background sphere
+# earth
 - type: sphere
-  position: [0,0,-1200]
-  radius: 500
-  scale: [2, 2, 2]
+  position: [0,0,400]
+  radius: 50
   material: # grey
-    color: [0.4,0.4,0.4]
+    color: [1.0, 1.0, 1.0]
     ka: 0.2
     kd: 0.8
-    ks: 0
-    n: 1
-    ior: 1.0
+    ks: 0.5
+    n: 40
+    # diffuseMap: "earth/color.png"
+    specularMap: "earth/specular.png"
+    normalMap: "earth/normal.png"
+
+# # background sphere
+# - type: sphere
+#   position: [0,0,-1200]
+#   radius: 500
+#   scale: [2, 2, 2]
+#   material: # grey
+#     color: [0.4,0.4,0.4]
+#     ka: 0.2
+#     kd: 0.8
+#     ks: 0
+#     n: 1
+#     ior: 1.0
 
 # - type: cylinder
 #   position: [-110,120,100]
@@ -80,33 +94,35 @@ Objects:
 #     n: 64
 
 # - type: box
-#   position: [0,0,300]
-#   rotation: [0,30,0]
-#   scale: [10, 10, 10]
+#   position: [0,0,200]
+#   # rotation: [0,30,0]
+#   scale: [20, 20, 20]
 #   material: # red
 #     color: [1.0,0.0,0.0]
 #     ka: 0.2
 #     kd: 0.7
 #     ks: 0.5
 #     n: 64
-#     # ior: 3.5
+#     diffuseMap: "vion-lowres/Color.png"
+#     specularMap: "vion-lowres/Main-Spec.png"
+#     normalMap: "vion-lowres/"
 
-- type: sphere
-  position: [100,-100,150]
-  radius: 50
-  material: # green
-    color: [0.0,1.0,0.0]
-    ka: 0.2
-    kd: 0.3
-    ks: 0.5
-    n: 8
+# - type: sphere
+#   position: [100,-100,150]
+#   radius: 50
+#   material: # green
+#     color: [0.0,1.0,0.0]
+#     ka: 0.2
+#     kd: 0.3
+#     ks: 0.5
+#     n: 8
 
-- type: sphere
-  position: [110,130,200]
-  radius: 50
-  material: # orange
-    color: [1.0,0.5,0.0]
-    ka: 0.2
-    kd: 0.8
-    ks: 0.5
-    n: 32
+# - type: sphere
+#   position: [110,130,200]
+#   radius: 50
+#   material: # orange
+#     color: [1.0,0.5,0.0]
+#     ka: 0.2
+#     kd: 0.8
+#     ks: 0.5
+#     n: 32
