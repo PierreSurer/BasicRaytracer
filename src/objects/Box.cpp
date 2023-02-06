@@ -29,18 +29,22 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
     normal *= dvec3(equal(t1, dvec3(tNear))); // bit mask to keep first hit direction
 
     dvec2 uv(0.0);
+    dvec3 tangent(0.0);
     auto hit = ray.at(tNear) * 0.5 + 0.5;
     if (normal.x != 0.0) {
         uv = { hit.y, hit.z };
+        tangent = { 0.0, 0.0, 1.0 };
     }
     else if (normal.y != 0.0) {
         uv = { hit.x, hit.z };
+        tangent = { 0.1, 0.0, 0.0 };
     }
     else {
         uv = { hit.x, hit.y };
+        tangent = { 0.0, 1.0, 0.0 };
     }
 
-    return std::make_unique<Hit>(tNear, HitParams{ this, normal, uv });
+    return std::make_unique<Hit>(tNear, HitParams{ this, normal, tangent, uv });
 }
 
 AABB Box::computeAABB() const

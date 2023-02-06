@@ -40,7 +40,7 @@ static glm::dvec3 parseVector(const YAML::Node& node)
 }
 
 Scene::Scene()
- : sky(Sky::DAY)
+ : sky(Sky::NIGHT)
 {
 }
 

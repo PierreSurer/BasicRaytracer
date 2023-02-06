@@ -33,7 +33,9 @@ std::unique_ptr<BaseHit> Sphere::intersect(const Ray& ray) const
     uv.x = atan2(normal.z, -normal.x) / (2 * glm::pi<double>()) + 0.5;
     uv.y = acos(-normal.y) / glm::pi<double>();
 
-    return std::make_unique<Hit>(t, HitParams{ this, normal, uv });
+    dvec3 tangent = normalize(dvec3(-normal.y, normal.x, 0.0));
+
+    return std::make_unique<Hit>(t, HitParams{ this, normal, tangent, uv });
 }
 
 AABB Sphere::computeAABB() const

@@ -40,10 +40,13 @@ HitParams TriangleHit::params() const {
     dvec3 norm = normalize(tri->n1 * c1 + tri->n2 * c2 + tri->n3 * c3);
     dvec2 uv = tri->t1 * c1 + tri->t2 * c2 + tri->t3 * c3;
 
+    // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/
+    dvec3 tangent = dvec3(0.0); // TODO
+
     // uncomment this for flat shading
     // norm = N;
 
-    return HitParams{ tri, norm, uv };
+    return HitParams{ tri, norm, tangent, uv };
 }
 
 Triangle::Triangle(dvec3 v1, dvec3 v2, dvec3 v3)
@@ -115,7 +118,7 @@ std::unique_ptr<BaseHit> Triangle::intersect(const Ray &ray) const
 
     dvec3 norm = normalize(u * n2 + v * n3 + w * n1);
     dvec2 uv = u * t2 + v * t3 + w * t1;
-    return std::make_unique<Hit>(t, HitParams{ this, norm, uv });
+    return std::make_unique<Hit>(t, HitParams{ this, norm, dvec3(0.0), uv });
 
 #endif
 }

@@ -9,6 +9,14 @@ using namespace glm;
 
 static const double EPS = 0.00001;
 
+static dvec3 applyNormalMap(const Image& normalMap, const HitParams& params)
+{
+    auto tangentNorm = normalMap.sample(params.tex_coords) * 2.0 - 1.0;
+    auto bitangent = cross(params.tangent, params.normal);
+    auto tbn = dmat3(params.tangent, bitangent, params.normal);
+    return tbn * tangentNorm;
+}
+
 Raytracer::Raytracer() : apertureTime(1.0) {
     noise.seed(0);
     srand(0);
@@ -64,6 +72,11 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     auto const& mat = hitProp.obj->material;
     dvec3 hitPoint = ray.at(hit->t);
 
+    // normal mapping
+    dvec3 hitNormal = mat->normalMap ?
+        applyNormalMap(*mat->normalMap, hitProp) :
+        hitProp.normal;
+
     Color diffuseColor(0.0), specularColor(0.0);
     Color reflectionColor(0.0), refractionColor(0.0);
     Color finalColor(0.0);
@@ -91,12 +104,12 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
 
         if (!inShadow) {
             // Diffuse color calculation
-            diffuseColor += baseColor * light->color * clamp(dot(hitProp.normal, lightDir), 0.0, 1.0);
+            diffuseColor += baseColor * light->color * clamp(dot(hitNormal, lightDir), 0.0, 1.0);
 
             // Specular color calculation using blinn-phong model
             // blinn
             dvec3 H = normalize(lightDir - ray.D);
-            double NdotH = clamp(dot(hitProp.normal, H), 0.0, 1.0);
+            double NdotH = clamp(dot(hitNormal, H), 0.0, 1.0);
             specularColor += light->color * pow(NdotH, 4.0 * mat->n);
             // phong
             // dvec3 R = reflect(-lightDir, hit.N);
@@ -118,18 +131,19 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
         TraceState nextState(state);
         nextState.bounces++;
         nextState.reflectionFactor *= mat->ks;
-        dvec3 reflectedDir = reflect(ray.D, hitProp.normal);
+        dvec3 reflectedDir = reflect(ray.D, hitNormal);
         Ray reflectionRay(hitPoint + EPS * reflectedDir, reflectedDir, ray.time);
         reflectionColor = traceColor(scene, reflectionRay, nextState) * mat->ks;
     }
     
     // refraction
     if (state.bounces < params.maxBounces && mat->ior > 1.0) {
-        dvec3 refractionDir = refract(ray.D, hitProp.normal, 1.0 / mat->ior);
+        dvec3 refractionDir = refract(ray.D, hitNormal, 1.0 / mat->ior);
         if(refractionDir != dvec3(0.0)) { //refraction
             Ray refractionRay = Ray(hitPoint + EPS * refractionDir, refractionDir, ray.time);
             auto refractionHit = hitProp.obj->intersect(refractionRay);
             if(!refractionHit->no_hit) {
+                // here we don't use the refraction material normal map... should we?
                 refractionDir = refract(refractionRay.D, -refractionHit->params().normal, mat->ior);
                 refractionRay = Ray(refractionRay.at(refractionHit->t) + EPS * refractionDir, refractionDir, ray.time);
             }
@@ -155,7 +169,7 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
     else {
         double kr = mat->ior;
         // fresnel
-        double cosi = dot(ray.D, hitProp.normal);
+        double cosi = dot(ray.D, hitNormal);
         double etai = 1, etat = mat->ior;
         if (cosi > 0) { std::swap(etai, etat); }
         // Compute sini using Snell's law
@@ -215,7 +229,12 @@ Color Raytracer::traceNormals(const Scene &scene, const Ray &ray)
     // No hit? Return background color.
     if (min_hit->no_hit) return Color(0.0, 0.0, 0.0);
 
-    dvec3 N = min_hit->params().normal;
+    auto params = min_hit->params();
+    dvec3 N = params.normal;
+
+    if (params.obj->material->normalMap) {
+        N = applyNormalMap(*params.obj->material->normalMap, params);
+    }
 
     return Color(1.0 + N) * 0.5;
 }
