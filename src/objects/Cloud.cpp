@@ -2,6 +2,7 @@
 
 #include <random>
 #include <glm/gtx/norm.hpp>
+#include <omp.h>
 
 const int STEP_SIZE = 1;
 
@@ -9,15 +10,17 @@ Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
  : position(position), scale(scale) 
 {
     // dim 0
-    const double sphere_size = 3.0;
     std::default_random_engine generator;
-    std::normal_distribution<double> posDistribution(0.0, 0.2);
+    std::normal_distribution<double> posDistribution(0.0, 0.05);
+    //std:: uniform_real_distribution<double> posDistribution(-1.0, 1.0);
+
 
     std::vector<glm::dvec3> particles;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 200; i++) {
         particles.push_back(glm::dvec3(posDistribution(generator) * scale.x * 0.5, posDistribution(generator) * scale.y * 0.5, posDistribution(generator) * scale.z * 0.5));
     }
 
+    #pragma omp parallel for
     for(int i = 0; i < TEXTURE_SIZE; i++)
         for(int j = 0; j < TEXTURE_SIZE; j++)
             for(int k = 0; k < TEXTURE_SIZE; k++) {
@@ -28,7 +31,7 @@ Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
                     double dst = glm::distance(pos, particles[a]) / sphere_size;
                     minDst = std::min(minDst, dst);
                 }
-                minDst = std::clamp(minDst, 0.0, 1.0);
+                minDst = 1.0 - std::clamp(minDst, 0.0, 1.0);
                 textures[0][i][j][k] = (uint8_t)(minDst * 255.0);
             }
 
@@ -54,50 +57,68 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
 
 
     // Current distance along ray
-    float t = 0;
+    float t = std::min(0.0, tNear);
     double density = 1.0;
-
+    double color = 1.0;
     while(t < tFar)
     {
 
         // Current ray position
         glm::dvec3 rayPos = ray.at(t) - position;
+        std::cout<<rayPos<<std::endl;
 
         // Evaluate our signed distance field at the current ray position
-        double sdf = -signedDistance(rayPos) / 255.0;
+        double sdf = -sphere_size *  signedDistance(rayPos) / 255.0;
 
         //std::cout<<sdf<<std::endl;
+        double transmittance = exp(sdf * STEP_SIZE * 0.01);   
 
-        // Only evaluate the cloud color if we're inside the volume
-        if (sdf < 0)
-        {
-            double transmittance = exp(sdf * STEP_SIZE * 0.01);   
+        // Integrate scattering
+        density *= transmittance;
 
-            // Integrate scattering
-            glm::dvec4 integScatt = glm::dvec4(1.0) * transmittance;
-            density *= transmittance;
-            
+        Ray lightRay(ray.at(t), normalize(glm::dvec3(1.0, 1.0, 1.0)));
 
-            // Opaque check
-            if (density < 0.003)
+        glm::dvec3 tMin2 = (first - lightRay.O) / lightRay.D;
+        glm::dvec3 tMax2 = (second - lightRay.O) / lightRay.D;
+
+        double tFar2 = compMin(max(tMin2, tMax2));
+        double t2 = 0.0;
+        while(t2 < tFar2) {
+            glm::dvec3 rayPos2 = lightRay.at(t2) - position;
+
+            double sdf2 = -sphere_size * signedDistance(rayPos2) / 255.0;
+
+            double transmittance2 = exp(sdf2 * STEP_SIZE * 0.001); 
+
+            color *= transmittance2;  
+            if (color < 0.003)
             {
-                density = 0.0;
+                color = 0.0;
                 break;
             }
+            
+            t2 += STEP_SIZE;
         }
+        // Opaque check
+        if (density < 0.003)
+        {
+            density = 0.0;
+            break;
+        }
+        
 
         // March forward; step size depends on if we're inside the volume or not
-        t += sdf < 0 ? STEP_SIZE : glm::max(sdf, (double)STEP_SIZE);
+        t += STEP_SIZE;
 
     }
 
-    return glm::dvec4(1.0, 1.0, 1.0, 1.0 - density);
+    return glm::dvec4(color, color, color, 1.0 - density);
 
 }
 
 //https://iquilezles.org/articles/distfunctions/
 double Cloud::signedDistance(glm::dvec3 pos) {
-    glm::ivec3 position = ((pos + scale * 0.5) * 33.0) / scale;
-    return noise[position.x][position.y][position.z];
+    glm::ivec3 position = ((pos + scale * 0.5) * (TEXTURE_SIZE + 1.0)) / scale;
+    return textures[0][position.x][position.y][position.z];
     
 }
