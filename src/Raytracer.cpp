@@ -59,9 +59,10 @@ Color Raytracer::traceColor(const Scene &scene, const Ray &ray, TraceState state
             default:
                 returnCol = Color(0.0);
         }
-        for(size_t i = 0; i < scene.clouds.size(); i++) {
-            glm::dvec4 cloud = scene.clouds[i]->traverse(ray);
-            returnCol = returnCol * cloud.a + (1.0-cloud.a) * (Color)cloud;
+        for(int i = 0; i < scene.clouds.size(); i++) {
+            glm::dvec4 cloud = scene.clouds[i]->traverse(ray, std::numeric_limits<double>::infinity());
+            returnCol = returnCol * (1.0 - cloud.a) +  cloud.a * (Color)cloud;
+            // std::cout<<cloud<<std::endl;
         }
             
         return returnCol;

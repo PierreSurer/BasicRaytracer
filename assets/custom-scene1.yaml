@@ -12,8 +12,10 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
+Sky: 'day'
+
 SuperSampling:
-  factor: 8
+  factor: 16
 
 RenderMode: 'phong'
 
@@ -27,36 +29,28 @@ Lights:
 - position: [500,0,500]
   color: [1.0,1.0,1.0]
 
+Clouds:
+- position: [0, 0, -200]
+  scale: [1000, 1000, 200]
+
 Objects:
 
 
-# - type: group
-#   rotation: [0, 0, 0]
-#   position: [0, 0, 300]
-#   scale: [20, 20, 20]
-#   children:
-#   - type: mesh
-#     file: "vion-lowres/vion.obj"
-#     angularVelocity: [0, 0, 5]
-#   - type: mesh
-#     file: "vion-lowres/propeller.obj"
-#     angularVelocity: [0, 0, 20]
+- type: group
+  rotation: [-30, 40, 0]
+  position: [0, 0, 300]
+  scale: [20, 20, 20]
+  children:
+  - type: mesh
+    file: "vion-lowres/vion.obj"
+    velocity: [0, 0, 0.1]
+  - type: mesh
+    file: "vion-lowres/propeller.obj"
+    angularVelocity: [0, 0, 25]
 
-# earth
-- type: sphere
-  position: [0,0,400]
-  radius: 50
-  material: # grey
-    color: [1.0, 1.0, 1.0]
-    ka: 0.2
-    kd: 0.8
-    ks: 0.5
-    n: 40
-    # diffuseMap: "earth/color.png"
-    specularMap: "earth/specular.png"
-    normalMap: "earth/normal.png"
 
-# # background sphere
+
+#   # background sphere
 # - type: sphere
 #   position: [0,0,-1200]
 #   radius: 500

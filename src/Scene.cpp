@@ -40,7 +40,7 @@ static glm::dvec3 parseVector(const YAML::Node& node)
 }
 
 Scene::Scene()
- : sky(Sky::NIGHT)
+ : sky(Sky::NONE)
 {
 }
 
@@ -263,7 +263,14 @@ bool Scene::readScene(const std::string& inputFilename)
             // Read scene camera
             const YAML::Node& cam = doc["Camera"];
             camera = parseCamera(cam);
-            
+
+            // Sky parsing
+            if (doc.FindValue("Sky")) {
+                if(doc["Sky"] == "day") sky = Sky::DAY;
+                if(doc["Sky"] == "night") sky = Sky::NIGHT;
+                if(doc["Sky"] == "direction") sky = Sky::DIRECTION;
+            }
+
             // Read and parse the scene objects
             if (doc.FindValue("Objects")) {
                 const YAML::Node& sceneObjects = doc["Objects"];

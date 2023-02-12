@@ -37,7 +37,7 @@ std::unique_ptr<BaseHit> Box::intersect(const Ray &ray) const
     }
     else if (normal.y != 0.0) {
         uv = { hit.x, hit.z };
-        tangent = { 0.1, 0.0, 0.0 };
+        tangent = { 1.0, 0.0, 0.0 };
     }
     else {
         uv = { hit.x, hit.y };
