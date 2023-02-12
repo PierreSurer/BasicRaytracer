@@ -4,38 +4,112 @@
 #include <glm/gtx/norm.hpp>
 #include <omp.h>
 
-const int STEP_SIZE = 1;
+static const glm::ivec3 offsets[] =
+{
+    // centre
+    glm::ivec3(0,0,0),
+    // front face
+    glm::ivec3(0,0,1),
+    glm::ivec3(-1,1,1),
+    glm::ivec3(-1,0,1),
+    glm::ivec3(-1,-1,1),
+    glm::ivec3(0,1,1),
+    glm::ivec3(0,-1,1),
+    glm::ivec3(1,1,1),
+    glm::ivec3(1,0,1),
+    glm::ivec3(1,-1,1),
+    // back face
+    glm::ivec3(0,0,-1),
+    glm::ivec3(-1,1,-1),
+    glm::ivec3(-1,0,-1),
+    glm::ivec3(-1,-1,-1),
+    glm::ivec3(0,1,-1),
+    glm::ivec3(0,-1,-1),
+    glm::ivec3(1,1,-1),
+    glm::ivec3(1,0,-1),
+    glm::ivec3(1,-1,-1),
+    // ring around centre
+    glm::ivec3(-1,1,0),
+    glm::ivec3(-1,0,0),
+    glm::ivec3(-1,-1,0),
+    glm::ivec3(0,1,0),
+    glm::ivec3(0,-1,0),
+    glm::ivec3(1,1,0),
+    glm::ivec3(1,0,0),
+    glm::ivec3(1,-1,0)
+};
+
+static const int grid_size[textureChannels] = {4, 8, 16};
+static const int texture_size[textureChannels] = {512, 256, 128};
+
+static const int STEP_SIZE = 1;
+
+int mod(int a, int b) {
+    int r = a % b;
+    return r < 0 ? r + b : r;
+}
 
 Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
  : position(position), scale(scale) 
 {
-    // dim 0
-    std::default_random_engine generator;
-    std::normal_distribution<double> posDistribution(0.0, 0.05);
-    //std:: uniform_real_distribution<double> posDistribution(-1.0, 1.0);
 
+    for(int texIdx = 0; texIdx < textureChannels; texIdx++ ) {
+        int texSize = texture_size[texIdx];
+        int gridSize = grid_size[texIdx];
 
-    std::vector<glm::dvec3> particles;
-    for (int i = 0; i < 200; i++) {
-        particles.push_back(glm::dvec3(posDistribution(generator) * scale.x * 0.5, posDistribution(generator) * scale.y * 0.5, posDistribution(generator) * scale.z * 0.5));
-    }
+        std::default_random_engine generator;
+        std::uniform_real_distribution<double> posDistribution(0.0, 1.0);
 
-    #pragma omp parallel for
-    for(int i = 0; i < TEXTURE_SIZE; i++)
-        for(int j = 0; j < TEXTURE_SIZE; j++)
-            for(int k = 0; k < TEXTURE_SIZE; k++) {
-                double minDst = std::numeric_limits<double>::infinity();
-                glm::dvec3 it = scale / (TEXTURE_SIZE + 1.0);
-                for(int a = 0; a < particles.size(); a++) {
-                    glm::dvec3 pos = -scale * 0.5 + it / 2.0 + glm::dvec3(it.x * i, it.y * j, it.z * k);
-                    double dst = glm::distance(pos, particles[a]) / sphere_size;
-                    minDst = std::min(minDst, dst);
+        std::vector<glm::dvec3> points(gridSize * gridSize * gridSize);
+        double cellSize = 1.0 / gridSize;
+
+        #pragma omp parallel for
+        for (int x = 0; x < gridSize; x++) {
+            for (int y = 0; y < gridSize; y++) {
+                for (int z = 0; z < gridSize; z++) {
+                    double rdX = posDistribution(generator);
+                    double rdY = posDistribution(generator);
+                    double rdZ = posDistribution(generator);
+                    glm::dvec3 randomOffset = glm::dvec3(rdX, rdY, rdZ) * cellSize;
+                    glm::dvec3 cellCorner = glm::dvec3(x, y, z) * cellSize;
+
+                    int index = x + gridSize * (y + z * gridSize);
+                    points[index] = cellCorner + randomOffset;
                 }
-                minDst = 1.0 - std::clamp(minDst, 0.0, 1.0);
-                textures[0][i][j][k] = (uint8_t)(minDst * 255.0);
             }
+        }
 
+        textures[textureChannels] = std::vector<uint8_t>(texSize * texSize * texSize);
+        double pixSize = 1.0 / texSize;
+        int pixPerCell = texSize / gridSize;
+
+        #pragma omp parallel for
+        for (int x = 0; x < texSize; x++) {
+            for (int y = 0; y < texSize; y++) {
+                for (int z = 0; z < texSize; z++) {
+                    glm::dvec3 pixelPos = glm::dvec3(x, y, z) * pixSize;
+
+                    glm::ivec3 cell(x / pixPerCell, y / pixPerCell, z / pixPerCell);
+                    double minDist = std::numeric_limits<double>::max(); 
+                    
+                    for(int cellIdx = 0; cellIdx < 27; cellIdx++) {
+                        int idxX = mod(cell.x + offsets[cellIdx].x, gridSize);
+                        int idxY = mod(cell.y + offsets[cellIdx].y, gridSize);
+                        int idxZ = mod(cell.z + offsets[cellIdx].z, gridSize);
+                        int index = idxX + gridSize * (idxY + idxZ * gridSize);
+
+                        minDist = std::min(minDist, glm::distance2(pixelPos, points.at(index)));
+
+                    }
+                    textures[textureChannels].at(x + texSize * (y + z * texSize)) = 255 - (uint8_t)(255.0 * std::min(1.0, sqrt(minDist)));
+
+                }
+            }
+        }
+    }
 }
+   
+    
 
 glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
 
@@ -64,11 +138,11 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
     {
 
         // Current ray position
-        glm::dvec3 rayPos = ray.at(t) - position;
+        glm::dvec3 rayPos = 0.5 + ((ray.at(t) - position) / scale); //Position between 0.0 and 1.0
         std::cout<<rayPos<<std::endl;
 
         // Evaluate our signed distance field at the current ray position
-        double sdf = -sphere_size *  signedDistance(rayPos) / 255.0;
+        double sdf = -signedDistance(rayPos) / 255.0;
 
         //std::cout<<sdf<<std::endl;
         double transmittance = exp(sdf * STEP_SIZE * 0.01);   
@@ -86,7 +160,7 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
         while(t2 < tFar2) {
             glm::dvec3 rayPos2 = lightRay.at(t2) - position;
 
-            double sdf2 = -sphere_size * signedDistance(rayPos2) / 255.0;
+            double sdf2 = -signedDistance(rayPos2) / 255.0;
 
             double transmittance2 = exp(sdf2 * STEP_SIZE * 0.001); 
 
@@ -118,7 +192,11 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
 
 //https://iquilezles.org/articles/distfunctions/
 double Cloud::signedDistance(glm::dvec3 pos) {
-    glm::ivec3 position = ((pos + scale * 0.5) * (TEXTURE_SIZE + 1.0)) / scale;
-    return textures[0][position.x][position.y][position.z];
+    int texSize = texture_size[0];
+    int x = (int)(pos.x * texSize);
+    int y = (int)(pos.y * texSize);
+    int z = (int)(pos.z * texSize);
+    
+    return textures[0].at(x + texSize * (y + z * texSize));
     
 }

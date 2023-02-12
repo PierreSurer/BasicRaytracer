@@ -3,8 +3,7 @@
 #include "Raycast.hpp"
 #include <vector>
 
-static const size_t TEXTURE_SIZE = 128;
-static const size_t MIPMAP_LEVEL = 3;
+static const size_t textureChannels = 3;
 
 class Cloud {
 public:
@@ -14,11 +13,11 @@ public:
 private:
     double signedDistance(glm::dvec3 localPos);
 
-    uint8_t textures[MIPMAP_LEVEL][TEXTURE_SIZE][TEXTURE_SIZE][TEXTURE_SIZE];
+    std::vector<uint8_t> textures[textureChannels];
 
     glm::dvec3 position;
     glm::dvec3 scale;
 
-    const double sphere_size = 10.0;
+    
 };
 
