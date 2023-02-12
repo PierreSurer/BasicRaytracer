@@ -42,7 +42,7 @@ static const glm::ivec3 offsets[] =
 static const int grid_size[textureChannels] = {4, 8, 16};
 static const int texture_size[textureChannels] = {512, 256, 128};
 
-static const int STEP_SIZE = 1;
+static const double STEP_SIZE = 0.5;
 
 int mod(int a, int b) {
     int r = a % b;
@@ -79,7 +79,7 @@ Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
             }
         }
 
-        textures[textureChannels] = std::vector<uint8_t>(texSize * texSize * texSize);
+        textures[texIdx] = std::vector<uint8_t>(texSize * texSize * texSize);
         double pixSize = 1.0 / texSize;
         int pixPerCell = texSize / gridSize;
 
@@ -101,7 +101,7 @@ Cloud::Cloud(glm::dvec3 position, glm::dvec3 scale)
                         minDist = std::min(minDist, glm::distance2(pixelPos, points.at(index)));
 
                     }
-                    textures[textureChannels].at(x + texSize * (y + z * texSize)) = 255 - (uint8_t)(255.0 * std::min(1.0, sqrt(minDist)));
+                    textures[texIdx].at(x + texSize * (y + z * texSize)) = 255 - (uint8_t)(255.0 * std::min(1.0, 10.0*sqrt(minDist)));
 
                 }
             }
@@ -131,26 +131,26 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
 
 
     // Current distance along ray
-    float t = std::min(0.0, tNear);
+    float t = std::max(0.0, tNear);
     double density = 1.0;
     double color = 1.0;
     while(t < tFar)
     {
-
+        glm::dvec3 ra = ray.at(t);
         // Current ray position
         glm::dvec3 rayPos = 0.5 + ((ray.at(t) - position) / scale); //Position between 0.0 and 1.0
-        std::cout<<rayPos<<std::endl;
+        //std::cout<<rayPos<<std::endl;
 
         // Evaluate our signed distance field at the current ray position
         double sdf = -signedDistance(rayPos) / 255.0;
 
         //std::cout<<sdf<<std::endl;
-        double transmittance = exp(sdf * STEP_SIZE * 0.01);   
+        double transmittance = exp(sdf * STEP_SIZE * 0.05);   
 
         // Integrate scattering
         density *= transmittance;
 
-        Ray lightRay(ray.at(t), normalize(glm::dvec3(1.0, 1.0, 1.0)));
+        Ray lightRay(ray.at(t), normalize(glm::dvec3(0.0, 1.0, 1.0)));
 
         glm::dvec3 tMin2 = (first - lightRay.O) / lightRay.D;
         glm::dvec3 tMax2 = (second - lightRay.O) / lightRay.D;
@@ -158,7 +158,7 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
         double tFar2 = compMin(max(tMin2, tMax2));
         double t2 = 0.0;
         while(t2 < tFar2) {
-            glm::dvec3 rayPos2 = lightRay.at(t2) - position;
+            glm::dvec3 rayPos2 = 0.5 + ((lightRay.at(t2) - position) / scale);
 
             double sdf2 = -signedDistance(rayPos2) / 255.0;
 
@@ -171,7 +171,7 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
                 break;
             }
             
-            t2 += STEP_SIZE;
+            t2 += STEP_SIZE * 80;
         }
         // Opaque check
         if (density < 0.003)
@@ -192,11 +192,18 @@ glm::dvec4 Cloud::traverse(Ray const& ray, double tMaximum) {
 
 //https://iquilezles.org/articles/distfunctions/
 double Cloud::signedDistance(glm::dvec3 pos) {
-    int texSize = texture_size[0];
-    int x = (int)(pos.x * texSize);
-    int y = (int)(pos.y * texSize);
-    int z = (int)(pos.z * texSize);
+    double dist = 0.0;
+    for(int i = 0; i < textureChannels; i++) {
+        // pos.x = fmod(pos.x + 0.165402 * i, 1.0);
+        // pos.y = fmod(pos.y + 0.545132 * i, 1.0);
+        // pos.z = fmod(pos.z + 0.754132 * i, 1.0);
+        int texSize = texture_size[i];
+        int x = std::clamp((int)(pos.x * texSize), 0, texSize - 1);
+        int y = std::clamp((int)(pos.y * texSize), 0, texSize - 1);
+        int z = std::clamp((int)(pos.z * texSize), 0, texSize - 1);
+        dist += textures[0].at(x + texSize * (y + z * texSize));
+    }
     
-    return textures[0].at(x + texSize * (y + z * texSize));
+    return dist;
     
 }
