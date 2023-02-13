@@ -7,13 +7,12 @@
 
 using namespace glm;
 
-Mesh parseObj(const std::filesystem::path &path)
+Mesh parseObj(const std::filesystem::path &path, std::shared_ptr<Material> active_mat)
 {
   std::vector<dvec3> verts, normals;
   std::vector<dvec2> texCoords;
   std::vector<Triangle> faces;
   MaterialBank mats;
-  std::shared_ptr<Material> active_mat = DEFAULT_MATERIAL;
 
   const std::regex face_desc(
     "^f (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+) (\\d+)/(\\d+)/(\\d+)"
