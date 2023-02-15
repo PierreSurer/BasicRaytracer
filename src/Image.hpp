@@ -1,11 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <string>
 #include <vector>
-#include <iostream>
-#include <filesystem>
-
-#include <glm/glm.hpp>
 
 using Color = glm::dvec3;
 

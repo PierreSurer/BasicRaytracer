@@ -1,14 +1,17 @@
 #include "Scene.hpp"
 
 #include "Material.hpp"
-#include "Image.hpp"
-
 #include "objects/Object.hpp"
 #include "objects/Sphere.hpp"
 #include "objects/Light.hpp"
 
-#include <memory>
+#include <yaml/yaml.h>
+
 #include <fstream>
+#include <iostream>
+#include <memory>
+#include <cassert>
+#include <stdexcept>
 
 // Functions to ease reading from YAML input
 static void operator>> (const YAML::Node& node, glm::dvec3& v)

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Raycast.hpp"
 #include "Object.hpp"
+#include <glm/glm.hpp>
 
 class Sphere : public Object
 {

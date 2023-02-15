@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.hpp"
+#include "Material.hpp"
 #include "Raycast.hpp"
 #include "Image.hpp"
 

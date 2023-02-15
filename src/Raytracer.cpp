@@ -1,7 +1,15 @@
 #include "Raytracer.hpp"
+
+#include "Image.hpp"
 #include "Material.hpp"
+#include "Raycast.hpp"
+#include "Scene.hpp"
+#include "objects/Object.hpp"
 
 #include <glm/glm.hpp>
+
+#include <memory>
+#include <vector>
 
 using namespace glm;
 

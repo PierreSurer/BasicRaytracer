@@ -2,10 +2,11 @@
 
 #include "objects/Light.hpp"
 #include "objects/Object.hpp"
-#include "Image.hpp"
+#include "Material.hpp"
 
+#include <memory>
+#include <string>
 #include <vector>
-#include <filesystem>
 
 #include <glm/glm.hpp>
 #include <yaml/yaml.h>

@@ -1,6 +1,10 @@
-#include "Material.hpp"
 #include "Scene.hpp"
 #include "Raytracer.hpp"
+#include "Image.hpp"
+
+#include <iostream>
+#include <string>
+
 
 int main(int argc, char *argv[])
 {

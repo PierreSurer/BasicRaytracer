@@ -1,9 +1,12 @@
 #include "Image.hpp"
 
 #include <lodepng/lodepng.h>
+#include <glm/glm.hpp>
 
-#include <fstream>
+#include <cstdlib>
 #include <algorithm>
+#include <iostream>
+#include <stdexcept>
 
 void Image::set_size(unsigned int width, unsigned int height)
 {
