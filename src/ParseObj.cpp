@@ -36,7 +36,7 @@ Mesh parseObj(const std::filesystem::path &path, std::shared_ptr<Material> activ
       std::filesystem::path mtl_path;
       iss >> mtl_path;
       mtl_path = path.parent_path() / mtl_path;
-      MaterialBank mtl = parseMtl(mtl_path);
+      MaterialBank mtl = parseMtl(mtl_path, active_mat);
       mats.insert(mtl.begin(), mtl.end());
     }
     if (c == "usemtl") {
@@ -89,7 +89,7 @@ Mesh parseObj(const std::filesystem::path &path, std::shared_ptr<Material> activ
 }
 
 
-MaterialBank parseMtl(const std::filesystem::path &path) {
+MaterialBank parseMtl(const std::filesystem::path &path, std::shared_ptr<Material> default_material) {
   MaterialBank res;
   Material* mat = nullptr;
 
@@ -106,30 +106,29 @@ MaterialBank parseMtl(const std::filesystem::path &path) {
     if (c == "newmtl") {
       std::string name;
       iss >> name;
-      auto insert = res.emplace(name, std::make_shared<Material>());
+      auto insert = res.emplace(name, default_material);
       mat = insert.first->second.get();
-      mat->color = dvec3(1.0);
     }
     else if (c == "Ka") { // ambient color
       // our color ambient color is implicitly white, so we get the magnitude
       // of the mtl's Ka (which represents ambientColor * ka)
       Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->ka = length(col / 255.0) / sqrt(3.0);
+      mat->ka = length(col) / sqrt(3.0);
     }
     else if (c == "Kd") { // diffuse color
       // our color diffuse color is implicitly white, so we get the magnitude
       // of the mtl's Kd (which represents diffuseColor * kd)
       Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->kd = length(col / 255.0) / sqrt(3.0);
+      mat->kd = length(col) / sqrt(3.0);
     }
     else if (c == "Ks") { // specular color
       // our color specular color is implicitly white, so we get the magnitude
       // of the mtl's Ks (which represents specularColor * ks)
       Color col;
       iss >> col.r >> col.g >> col.b;
-      mat->ks = length(col / 255.0) / sqrt(3.0);
+      mat->ks = length(col) / sqrt(3.0);
     }
     else if (c == "Ns") { // specular exponent
       iss >> mat->n;

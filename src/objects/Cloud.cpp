@@ -198,9 +198,9 @@ double Cloud::signedDistance(glm::dvec3 pos) {
         // pos.y = fmod(pos.y + 0.545132 * i, 1.0);
         // pos.z = fmod(pos.z + 0.754132 * i, 1.0);
         int texSize = texture_size[i];
-        int x = std::clamp((int)(pos.x * texSize), 0, texSize - 1);
-        int y = std::clamp((int)(pos.y * texSize), 0, texSize - 1);
-        int z = std::clamp((int)(pos.z * texSize), 0, texSize - 1);
+        int x = glm::clamp((int)(pos.x * texSize), 0, texSize - 1);
+        int y = glm::clamp((int)(pos.y * texSize), 0, texSize - 1);
+        int z = glm::clamp((int)(pos.z * texSize), 0, texSize - 1);
         dist += textures[0].at(x + texSize * (y + z * texSize));
     }
     

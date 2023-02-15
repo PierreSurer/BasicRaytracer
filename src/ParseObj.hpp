@@ -10,4 +10,4 @@ Mesh parseObj(const std::filesystem::path &path, std::shared_ptr<Material> mat =
 
 using MaterialBank = std::unordered_map<std::string, std::shared_ptr<Material>>;
 
-MaterialBank parseMtl(const std::filesystem::path &path);
+MaterialBank parseMtl(const std::filesystem::path &path, std::shared_ptr<Material> mat = DEFAULT_MATERIAL);

@@ -1,0 +1,39 @@
+---
+#  This is an example scene description for the raytracer framework created 
+#  for the Computer Science course "Introduction to Computer Graphics"
+#  taught at the University of Groningen by Tobias Isenberg.
+#
+#  The scene description format we use is based on YAML, which is a human friendly 
+#  data serialization standard. This gives us a flexible format which should be
+#  fairly easy to make both backward and forward compatible (i.e., by ignoring
+#  unknown directives). In addition parsers are available for many languages.
+#  See http://www.yaml.org/ for more information on YAML.
+#
+#  The example scene description should largely speak for itself. By now
+#  it should be clear that the #-character can be used to insert comments.
+
+SuperSampling:
+  factor: 4
+
+RenderMode: 'phong'
+
+Sky: "day"
+
+Camera:
+  eye: [0, 0, 500]
+  center: [0, 0, 0]
+  up: [0, 1, 0]
+  fov: 70
+
+Lights:
+- position: [1000,0,1000]
+  color: [1.0,1.0,1.0]
+
+Objects:
+
+- type: mesh
+  file: "eiffel2.obj"
+  scale: [10, 10, 10]
+  position: [0, -200, -100]
+  material:
+    color: [0.5, 0.5, 0.5]
