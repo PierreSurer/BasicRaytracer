@@ -1,9 +1,10 @@
 #pragma once
 #include "Image.hpp"
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 
-typedef glm::dvec3 Color;
+using Color = glm::dvec3;
+
 class Material
 {
 public:

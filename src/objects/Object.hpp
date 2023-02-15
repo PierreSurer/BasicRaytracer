@@ -5,14 +5,10 @@
 
 #include <memory>
 
-using AABB = std::pair<glm::dvec3, glm::dvec3>;
-
 class Object {
 public:
     std::shared_ptr<Material> material = DEFAULT_MATERIAL;
     virtual ~Object() = default;
 
-    virtual std::unique_ptr<BaseHit> intersect(const Ray &ray) const = 0;
-
-    virtual AABB computeAABB() const = 0;
+    virtual Hit intersect(const Ray &ray) const = 0;
 };

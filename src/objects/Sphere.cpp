@@ -1,49 +1,49 @@
 #include "Sphere.hpp"
-#include <math.h>
-#include <glm/gtx/norm.hpp>
+
+#include <glm/glm.hpp>
+
 using namespace glm;
 
-Sphere::Sphere()
+Sphere::Sphere(dvec3 position, double r)
+    : position(position), r(r)
 { }
 
-std::unique_ptr<BaseHit> Sphere::intersect(const Ray& ray) const
+Hit Sphere::intersect(const Ray& ray) const
 {
-    // dvec3 pos = velocity * ray.time;
-    dvec3 OC = -ray.O;
+    /****************************************************
+    * RT1.1: INTERSECTION CALCULATION
+    *
+    * Given: ray, position, r
+    * Sought: intersects? if true: *t
+    * 
+    * Insert calculation of ray/sphere intersection here. 
+    *
+    * You have the sphere's center (C) and radius (r) as well as
+    * the ray's origin (ray.O) and direction (ray.D).
+    *
+    * If the ray does not intersect the sphere, return Hit::NO_HIT().
+    * Otherwise, return an instance of Hit() with the distance of the
+    * intersection point from the ray origin as t and the normal ad N (see example).
+    ****************************************************/
 
-    double t1 = dot(OC, ray.D);
-    double h_2 = length2(OC) - t1 * t1;
-    if (h_2 > 1.0) {
+    // place holder for actual intersection calculation
+
+    dvec3 OC = normalize(position - ray.O);
+    if (dot(OC, ray.D) < 0.999) {
         return Hit::NO_HIT();
     }
+    double t = 1000;
 
-    double t;
-    if(length2(OC) >= 1.0)
-        t = t1 - sqrt(1.0 - h_2);
-    else
-        t = t1 + sqrt(1.0 - h_2);
+    /****************************************************
+    * RT1.2: NORMAL CALCULATION
+    *
+    * Given: t, C, r
+    * Sought: N
+    * 
+    * Insert calculation of the sphere's normal at the intersection point.
+    ****************************************************/
 
-    if (t < 0.0) {
-        return Hit::NO_HIT();
-    }
+    dvec3 N /* = ... */;
 
-    dvec3 normal = ray.at(t);
-
-    dvec3 uv = dvec3(0.0);
-    uv.x = atan2(normal.z, -normal.x) / (2 * glm::pi<double>()) + 0.5;
-    uv.y = acos(-normal.y) / glm::pi<double>();
-
-    dvec3 tangent = normalize(dvec3(-normal.y, normal.x, 0.0));
-
-    return std::make_unique<Hit>(t, HitParams{ this, normal, tangent, uv });
-}
-
-AABB Sphere::computeAABB() const
-{
-    AABB aabb;
-    // TODO
-    // aabb.first = position - r;
-    // aabb.second = position + r;
-
-    return aabb;
+    return Hit(t,N);
 }

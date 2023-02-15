@@ -12,23 +12,15 @@
 #  The example scene description should largely speak for itself. By now
 #  it should be clear that the #-character can be used to insert comments.
 
-RenderMode: "gooch"
-
-Camera:
-  eye: [0, 0, 1000]
-  center: [0, 0, 0]
-  up: [0, 1, 0]
-
-SuperSampling:
-  factor: 1
+Eye: [200,200,1000]
 
 Lights:
-- position: [400,0,400]
+- position: [-200,600,1500]
   color: [1.0,1.0,1.0]
 
 Objects:
 - type: sphere
-  position: [-110,120,100]
+  position: [90,320,100]
   radius: 50
   material: # blue
     color: [0.0,0.0,1.0]
@@ -36,9 +28,8 @@ Objects:
     kd: 0.7
     ks: 0.5
     n: 64
-    ior: 1.0
 - type: sphere
-  position: [10,70,300]
+  position: [210,270,300]
   radius: 50
   material: # green
     color: [0.0,1.0,0.0]
@@ -46,9 +37,8 @@ Objects:
     kd: 0.3
     ks: 0.5
     n: 8
-    ior: 1.0
 - type: sphere
-  position: [90,-30,150]
+  position: [290,170,150]
   radius: 50
   material: # red
     color: [1.0,0.0,0.0]
@@ -56,21 +46,17 @@ Objects:
     kd: 0.7
     ks: 0.8
     n: 32
-    ior: 1.0
 - type: sphere
-  position: [-60,20,400]
-  rotation: [60, 270, 70]
+  position: [140,220,400]
   radius: 50
   material: # yellow
-    texture: earth.png
-    color: [1.0,1.0,1.0]
+    color: [1.0,0.8,0.0]
     ka: 0.2
     kd: 0.8
     ks: 0.0
     n: 1
-    ior: 1.0
 - type: sphere
-  position: [-90,-70,200]
+  position: [110,130,200]
   radius: 50
   material: # orange
     color: [1.0,0.5,0.0]
@@ -78,4 +64,3 @@ Objects:
     kd: 0.8
     ks: 0.5
     n: 32
-    ior: 1.0

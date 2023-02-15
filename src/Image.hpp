@@ -1,36 +1,43 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include <iostream>
-#include <glm.hpp>
 #include <filesystem>
 
-typedef glm::dvec3 Color;
+#include <glm/glm.hpp>
+
+using Color = glm::dvec3;
 
 class Image
 {
 public:
-    Image(int width=0, int height=0)
+    Image(unsigned int width, unsigned int height)
         : _pixel(), _width(0), _height(0)
     {
-        setSize(width, height);    //creates array
+        set_size(width, height);    //creates array
     }
 
-    Image(std::filesystem::path const& imageFilename)
+    Image(const std::string& imageFilename)
     {
-        readPng(imageFilename);
+        read_png(imageFilename);
     }
 
     // Normal accessors
-    inline void putPixel(unsigned int x, unsigned int y, unsigned int channel, const unsigned char& c);
-    inline unsigned char getPixel(unsigned int x, unsigned int y, unsigned int channel) const;
-    Color sample(glm::dvec2 uv) const;
+    inline void put_pixel(unsigned int x, unsigned int y, Color c);
+    inline Color get_pixel(unsigned int x, unsigned int y) const;
+
+    // Handier accessors
+    // Usage: color = img(x,y);
+    //        img(x,y) = color;
+    inline const Color& operator()(unsigned int x, unsigned int y) const;
+    inline Color& operator()(unsigned int x, unsigned int y);
 
     // Normalized accessors, interval is (0...1, 0...1)
-    //inline const Color& colorAt(float x, float y) const; //TODO : convert to unsigned char if needed
+    inline Color color_at(float x, float y) const;
 
     // Normalized accessors for bumpmapping. Uses green component.
-    //inline void derivativeAt(float x, float y, float *dx, float *dy) const; //TODO : convert to unsigned char if needed
+    inline glm::dvec2 derivative_at(float x, float y) const;
 
     // Image parameters
     inline unsigned int width() const  { return _width; }
@@ -38,27 +45,24 @@ public:
     inline unsigned int size() const   { return _width * _height; }
 
     // File stuff
-    void writePng(std::filesystem::path const& filename);
-    void readPng(std::filesystem::path const& filename);
-
-    inline std::vector<unsigned char> getPixels() const { return _pixel; };
+    void write_png(const std::string& filename) const;
+    void read_png(const std::string& filename);
 
 protected:
 
     inline unsigned int index(int x, int y) const            //integer index
-    { return 4 * (y * _width + x); }
+    { return (y * _width + x); }
 
     inline unsigned int windex(int x, int y) const           //wrapped integer index
     { return index(x % _width, y % _height); }
 
-    inline int findex(float x, float y) const       //float index
+    inline int findex(float x, float y) const                //float index
     { return index(int(x * (_width-1)), int(y * (_height-1))); }
 
-    // Create a picture. Return false if failed.
-    void setSize(int width, int height);
+    void set_size(unsigned int width, unsigned int height);
 
 protected:
-    std::vector<unsigned char> _pixel;
+    std::vector<Color> _pixel;
     unsigned int _width;
     unsigned int _height;
 };
@@ -66,25 +70,37 @@ protected:
 
 //Inline functions
 
-inline void Image::putPixel(unsigned int x, unsigned int y, unsigned int channel, const unsigned char& c)
+inline void Image::put_pixel(unsigned int x, unsigned int y, Color c)
 {
-    _pixel.at(index(x, y) + channel) = c;
+    _pixel.at(index(x, y)) = c;
 }
 
-inline unsigned char Image::getPixel(unsigned int x, unsigned int y, unsigned int channel) const
+inline Color Image::get_pixel(unsigned int x, unsigned int y) const
 {
-    return _pixel.at(index(x, y) + channel);
+    return _pixel.at(index(x, y));
 }
 
-// inline const Color& Image::colorAt(float x, float y) const
-// {
-//     return _pixel[findex(x, y)];
-// }
+inline const Color& Image::operator()(unsigned int x, unsigned int y) const
+{
+    return _pixel.at(index(x, y));
+}
 
-// inline void Image::derivativeAt(float x, float y, float *dx, float *dy) const
-// {
-//     int ix = (int)(x * (_width - 1));
-//     int iy = (int)(y * (_height - 1));
-//     *dx = _pixel[windex(ix,iy+1)].g - _pixel[index(ix,iy)].g;
-//     *dy = _pixel[windex(ix+1,iy)].g - _pixel[index(ix,iy)].g;
-// }
+inline Color& Image::operator()(unsigned int x, unsigned int y)
+{
+    return _pixel.at(index(x, y));
+}
+
+inline Color Image::color_at(float x, float y) const
+{
+    return _pixel.at(findex(x, y));
+}
+
+inline glm::dvec2 Image::derivative_at(float x, float y) const
+{
+    int ix = (int)(x * (_width - 1));
+    int iy = (int)(y * (_height - 1));
+    return glm::dvec2(
+        _pixel.at(windex(ix,iy+1)).g - _pixel.at(index(ix,iy)).g,
+        _pixel.at(windex(ix+1,iy)).g - _pixel.at(index(ix,iy)).g
+    );
+}

@@ -1,33 +1,46 @@
 #include "Image.hpp"
-#include "lodepng.h"
-#include <algorithm>
-#include <fstream>
 
-/*
-* Create a picture. Answer false if failed.
-*/
-void Image::setSize(int width, int height)
+#include <lodepng/lodepng.h>
+
+#include <fstream>
+#include <algorithm>
+
+void Image::set_size(unsigned int width, unsigned int height)
 {
     if(width == 0 || height == 0)
-        throw std::runtime_error("Error in img size");
+        throw std::runtime_error("Invalid image size");
     _width = width;
     _height = height;
-    _pixel.resize(size() * 4);
-    std::fill(_pixel.begin(), _pixel.end(), 0);
+    _pixel.resize(size());
+    std::fill(_pixel.begin(), _pixel.end(), Color(0.0));
 }
 
 
-void Image::writePng(std::filesystem::path const& filename)
+void Image::write_png(const std::string& filename) const
 {
-    LodePNG::encode(filename.string(), _pixel, _width, _height);
+    std::vector<unsigned char> image;
+    image.resize(size() * 4);
+    auto imageIterator = image.begin();
+    for (auto it = _pixel.begin(); it  != _pixel.end(); ++it) {
+        const Color& pixel = *it;
+        *imageIterator = (unsigned char)(pixel.r * 255.0);
+        imageIterator++;
+        *imageIterator = (unsigned char)(pixel.g * 255.0);
+        imageIterator++;
+        *imageIterator = (unsigned char)(pixel.b * 255.0);
+        imageIterator++;
+        *imageIterator = 255;
+        imageIterator++;
+    }
+    LodePNG::encode(filename, image, _width, _height);
 }
 
 
-void Image::readPng(std::filesystem::path const& filename)
+void Image::read_png(const std::string& filename)
 {
     std::vector<unsigned char> buffer, image;
     //load the image file with given filename
-    LodePNG::loadFile(buffer, filename.string());
+    LodePNG::loadFile(buffer, filename);
 
     //decode the png
     LodePNG::Decoder decoder;
@@ -42,20 +55,19 @@ void Image::readPng(std::filesystem::path const& filename)
     }
     int w = decoder.getWidth();
     int h = decoder.getHeight();
-    setSize(w, h);
+    set_size(w, h);
 
-    std::copy(image.begin(), image.end(), _pixel.begin());
-}
-
-Color Image::sample(glm::dvec2 uv) const {
-    unsigned int x = (unsigned int)std::clamp<double>(uv.x * _width, 0.0, _width - 1);
-    unsigned int y = (unsigned int)std::clamp<double>(uv.y * _height, 0.0, _height - 1);
-    y = _height - y - 1;
-
-    return glm::dvec4(
-        getPixel(x, y, 0) / 255.0,
-        getPixel(x, y, 1) / 255.0,
-        getPixel(x, y, 2) / 255.0,
-        getPixel(x, y, 3) / 255.0
-    );
+    // now convert the image data
+    auto imageIterator = image.begin();
+    for (auto it = _pixel.begin(); it  != _pixel.end(); ++it) {
+        Color& pixel = *it;
+        pixel.r = (*imageIterator) / 255.0;
+        imageIterator++;
+        pixel.g = (*imageIterator) / 255.0;
+        imageIterator++;
+        pixel.b = (*imageIterator) / 255.0;
+        imageIterator++;
+        // Let's just ignore the alpha channel
+        imageIterator++; 
+    }
 }
